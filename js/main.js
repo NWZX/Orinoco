@@ -111,3 +111,26 @@ function valid_checkout(key, RL = true) {
     }
     return true;
 }
+function httpGetAsync(theUrl, callback) {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (this.readyState == XMLHttpRequest.DONE && this.status == 200)
+            callback(JSON.parse(this.responseText));
+        else if (this.status == 400)
+            alert("API request error");
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send();
+}
+function httpPostAsync(theUrl, object, callback) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState == XMLHttpRequest.DONE && this.status == 201)
+            callback();
+        else if (this.status == 400)
+            alert(this.responseText);
+    }
+    request.open("POST", theUrl, true);
+    request.setRequestHeader("Content-Type", "application/json");
+    request.send(JSON.stringify(object));
+}
