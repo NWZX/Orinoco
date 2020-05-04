@@ -168,6 +168,45 @@ function httpPostAsync(theUrl, object, callback) {
     request.setRequestHeader("Content-Type", "application/json");
     request.send(JSON.stringify(object));
 }
+function index(response) {
+    for (let index = 0; index < response.length; index++) {
+        const ele = response[index];
+        contents.innerHTML += '<div class="single-products-catagory clearfix">' +
+            '<a href="product-details.html" onclick="define_product(\'' + ele._id + '\')">' +
+            '<img src="' + ele.imageUrl + '" alt="">' +
+            '<div class="hover-content">' +
+            '<div class="line"></div>' +
+            '<p>From $' + scrap_price(ele.price) + '</p>' +
+            '<h4>' + ele.name + '</h4>' +
+            '</div>' +
+            '</a>' +
+            '</div>';
+    }
+
+    (function ($) {
+        'use strict';
+
+        var $window = $(window);
+
+        // :: 1.0 Masonary Gallery Active Code
+
+        var proCata = $('.amado-pro-catagory');
+        var singleProCata = ".single-products-catagory";
+
+        if ($.fn.imagesLoaded) {
+            proCata.imagesLoaded(function () {
+                proCata.isotope({
+                    itemSelector: singleProCata,
+                    percentPosition: true,
+                    masonry: {
+                        columnWidth: singleProCata
+                    }
+                });
+            });
+        }
+
+    })(jQuery);
+}
 
 count_card_item();
 //Recupéré la liste des produit
