@@ -18,3 +18,12 @@ function UR_price(response) {
         '<li><span>delivery:</span> <span>Free</span></li>' +
         '<li><span>total:</span> <span>$' + result.toFixed(2) + '</span></li>';
 }
+function count_card_item() {
+    let element = document.getElementById('nb_card_item');
+    if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
+        element.innerHTML = "(0)";
+    }
+    else {
+        element.innerHTML = '(' + localStorage.getItem("card").split(',').length + ')';
+    }
+}
