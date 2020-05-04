@@ -11,6 +11,25 @@ function Counter(array) {
     array.forEach(val => count[val] = (count[val] || 0) + 1);
     return Object.entries(count);
 }
+function qtyObject(id, add) {
+    let effect = document.getElementById('qty' + id);
+    let qty = effect.value;
+    if (add == false && !isNaN(qty) && qty > 0) {
+        effect.value--;
+        let card = localStorage.getItem("card").split(",");
+        card.splice(card.indexOf(id.toString()), 1);
+        localStorage.setItem("card", card.toString());
+    }
+    if (add == true && !isNaN(qty) && qty <= 300) {
+        effect.value++;
+        let card = localStorage.getItem("card").split(",");
+        card.push(id);
+        localStorage.setItem("card", card.toString());
+    }
+    count_card_item();
+    UR_price();
+    return false;
+}
 function UR_price(response) {
     let result = 0;
     let card = localStorage.getItem("card").split(",");
