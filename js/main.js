@@ -134,3 +134,28 @@ function httpPostAsync(theUrl, object, callback) {
     request.setRequestHeader("Content-Type", "application/json");
     request.send(JSON.stringify(object));
 }
+
+count_card_item();
+//Recupéré la liste des produit
+let pages = location.pathname.split("/").slice(-1);
+let contents = document.getElementById('amado-pro-catagory');
+
+if (pages[0] == "index.html") {
+    httpGetAsync(server + "/api/furniture", index)
+}
+
+else if (pages[0] == "product-details.html" && localStorage.getItem("product") != null) {
+    httpGetAsync(server + "/api/furniture/" + localStorage.getItem("product"), product_detail)
+}
+
+else if (pages[0] == "cart.html" && localStorage.getItem("card") != null) {
+    httpGetAsync(server + "/api/furniture", card)
+}
+
+else if (pages[0] == "checkout.html") {
+    httpGetAsync(server + "/api/furniture", checkout)
+    let req = new XMLHttpRequest();
+}
+else {
+    window.location.replace("index.html");
+}
