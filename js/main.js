@@ -251,6 +251,38 @@ function product_detail(response) {
         // On change le contenu de notre élément pour afficher "C'est cliqué !"
     });
 }
+function card(response) {
+    let card_element = Counter(localStorage.getItem("card").split(","));
+    let contents = document.getElementById('card-element');
+    for (let [key, value] of card_element) {
+        const ele = response.find(n => n._id == key);
+        if (value > 300) {
+            value = 300;
+        }
+        contents.innerHTML += '<tr>' +
+            '<td class="cart_product_img">' +
+            '<a href="#"><img src="' + ele.imageUrl + '" alt="Product"></a>' +
+            '</td>' +
+            '<td class="cart_product_desc">' +
+            '<h5>' + ele.name + '</h5>' +
+            '</td>' +
+            '<td class="price">' +
+            '<span>$' + scrap_price(ele.price) + '</span>' +
+            '</td>' +
+            '<td class="qty">' +
+            '<div class="qty-btn d-flex">' +
+            '<p>Qty</p>' +
+            '<div class="quantity">' +
+            '<span class="qty-minus" onclick="qtyObject(' + key + ', false);"><i class="fa fa-minus" aria-hidden="true"></i></span>' +
+            '<input type="number" class="qty-text" id="qty' + key + '" step="1" min="0" max="300" name="quantity" value="' + value + '">' +
+            '<span class="qty-plus" onclick="qtyObject(' + key + ', true);"><i class="fa fa-plus" aria-hidden="true"></i></span>' +
+            '</div>' +
+            '</div>' +
+            '</td>' +
+            '</tr>';
+    }
+    UR_price(response);
+}
 
 count_card_item();
 //Recupéré la liste des produit
