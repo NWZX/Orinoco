@@ -283,6 +283,41 @@ function card(response) {
     }
     UR_price(response);
 }
+function checkout(response) {
+    document.getElementById("first_name").addEventListener("input", function (e) {
+        valid_checkout(1);
+    });
+    document.getElementById("last_name").addEventListener("input", function (e) {
+        valid_checkout(1);
+    });
+    document.getElementById("email").addEventListener("input", function (e) {
+        valid_checkout(2);
+    });
+    document.getElementById("street_address").addEventListener("input", function (e) {
+        valid_checkout(3);
+    });
+    document.getElementById("city").addEventListener("input", function (e) {
+        valid_checkout(4);
+    });
+    document.getElementById('checkout').addEventListener('click', function () {
+        if (valid_checkout(0, false)) {
+            let contact = {
+                firstName: document.getElementById("first_name").value,
+                lastName: document.getElementById("last_name").value,
+                address: document.getElementById("street_address").value,
+                city: document.getElementById("city").value,
+                email: document.getElementById("email").value
+            }
+            let products = localStorage.getItem("card").split(",");
+            let orderid = utf8_to_b64((new Date()).getTime().toString() + (Math.random() * 10000000).toString());
+            let object = { contact, products, orderid }
+
+            httpPostAsync(server + "/api/furniture/order", object, clean)
+        }
+    });
+
+    UR_price(response);
+}
 
 count_card_item();
 //Recupéré la liste des produit
