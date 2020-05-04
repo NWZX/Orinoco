@@ -207,6 +207,50 @@ function index(response) {
 
     })(jQuery);
 }
+function product_detail(response) {
+    let ele = response;
+
+    let d_title = document.getElementById('detail_title');
+    let d_title_nav = document.getElementById('nav_title');
+    d_title.innerHTML = ele.name;
+    d_title_nav.innerHTML = ele.name;
+
+    let d_desc = document.getElementById('detail_desc');
+    d_desc.innerHTML = ele.description;
+
+    let d_price = document.getElementById('detail_price');
+    d_price.innerHTML = "$" + scrap_price(ele.price);
+
+    let d_img = document.getElementsByClassName('carousel-inner');
+    d_img[0].innerHTML = '<div class="carousel-item active">' +
+        '<a class="gallery_img" href="' + ele.imageUrl + '">' +
+        '<img class="d-block w-100" src="' + ele.imageUrl + '" alt="First slide">' +
+        '</a>' +
+        '</div>';
+
+    let d_img_mini = document.getElementsByClassName('carousel-indicators');
+    d_img_mini[0].innerHTML = '<li class="active" data-target="#product_details_slider" data-slide-to="0"' +
+        'style = "background-image: url(' + ele.imageUrl + ');" >' +
+        '</li >';
+
+    let btn = document.getElementById('checkout');
+    btn.addEventListener('click', function () {          // On écoute l'événement click
+        let effect = document.getElementById('qty');
+        let qty = effect.value;
+        while (qty > 0) {
+            if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
+                let array = localStorage.getItem("product");
+                localStorage.setItem("card", array);
+            }
+            else {
+                let array = localStorage.getItem("card");
+                localStorage.setItem("card", array + "," + localStorage.getItem("product"));
+            }
+            qty--;
+        }
+        // On change le contenu de notre élément pour afficher "C'est cliqué !"
+    });
+}
 
 count_card_item();
 //Recupéré la liste des produit
