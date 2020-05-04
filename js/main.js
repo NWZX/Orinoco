@@ -6,6 +6,11 @@ function scrap_price(price) {
     price /= 1000;
     return price;
 }
+function Counter(array) {
+    var count = {};
+    array.forEach(val => count[val] = (count[val] || 0) + 1);
+    return Object.entries(count);
+}
 function UR_price(response) {
     let result = 0;
     let card = localStorage.getItem("card").split(",");
