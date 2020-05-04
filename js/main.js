@@ -135,6 +135,16 @@ function valid_checkout(key, RL = true) {
     }
     return true;
 }
+function define_product(id) {
+    localStorage.setItem("product", id);
+}
+function clean() {
+    localStorage.setItem("card", "");
+    window.location.replace("index.html");
+}
+function utf8_to_b64(str) {
+    return window.btoa(unescape(encodeURIComponent(str)));
+}
 function httpGetAsync(theUrl, callback) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
