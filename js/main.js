@@ -318,6 +318,18 @@ function checkout(response) {
 
     UR_price(response);
 }
+function getParameters() {
+    var urlParams,
+        match,
+        pl = /+/g, // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) { return decodeURIComponent(s.replace(pl)); },
+        query = window.location.search.substring(1);
+    urlParams = {};
+    while (match = search.exec(query))
+        urlParams[decode(match[1])] = decode(match[2]);
+    return urlParams;
+}
 
 count_card_item();
 //Recupéré la liste des produit
