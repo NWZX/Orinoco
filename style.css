@@ -11,3 +11,13 @@
     /* ---------------------------------------
     ##### - PLACE YOUR CUSTOM CSS HERE - #####
     --------------------------------------- */
+
+        .custom-invalid-form{
+        margin-top: 2%;
+        /*padding-left: 1%;*/
+        margin-left: 35%;
+        margin-right: 35%;
+        text-align: center;
+        color: #d61848e0;
+        font-weight: bold;
+    }
