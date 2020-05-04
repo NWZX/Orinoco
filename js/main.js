@@ -27,3 +27,87 @@ function count_card_item() {
         element.innerHTML = '(' + localStorage.getItem("card").split(',').length + ')';
     }
 }
+function valid_checkout(key, RL = true) {
+    let e;
+    switch (key) {
+        case 1:
+            e = document.getElementById("first_name");
+            var fname = e.value; // Valeur saisie dans le champ mdp
+            var i_fname = document.getElementById("invalid_fname");
+            if (fname != "" && regex_name.test(fname)) {
+                i_fname.textContent = "Invalid first name"; // Texte de l'aide
+                return false;
+            }
+            else if (!RL && fname == "") {
+                i_fname.textContent = "First name required";
+                return false;
+            }
+            else {
+                i_fname.textContent = "";
+            }
+
+            e = document.getElementById("last_name");
+            var lname = e.value; // Valeur saisie dans le champ mdp
+            var i_lname = document.getElementById("invalid_lname");
+            if (lname != "" && regex_name.test(lname)) {
+                i_lname.textContent = "Invalid last name"; // Texte de l'aide
+                return false;
+            }
+            else if (!RL && lname == "") {
+                i_lname.textContent = "Last name required";
+                return false;
+            }
+            else {
+                i_lname.textContent = "";
+            }
+            break;
+        case 2:
+            e = document.getElementById("email");
+            var email = e.value; // Valeur saisie dans le champ mdp
+            var i_email = document.getElementById("invalid_email");
+            if (email != "" && !regex_email.test(email)) {
+                i_email.textContent = "Email invalid"; // Texte de l'aide
+                return false;
+            }
+            else if (!RL && email == "") {
+                i_email.textContent = "Email required";
+                return false;
+            }
+            else {
+                i_email.textContent = "";
+            }
+            break;
+        case 3:
+            e = document.getElementById("street_address");
+            var addr = e.value; // Valeur saisie dans le champ mdp
+            var i_addr = document.getElementById("invalid_addr");
+            if (!RL && addr == "") {
+                i_addr.textContent = "Address required";
+                return false;
+            }
+            else {
+                i_addr.textContent = "";
+            }
+            break;
+        case 4:
+            e = document.getElementById("city");
+            var city = e.value; // Valeur saisie dans le champ mdp
+            var i_city = document.getElementById("invalid_city");
+            if (lname != "" && regex_name.test(city)) {
+                i_city.textContent = "Invalid city"; // Texte de l'aide
+                return false;
+            }
+            else if (!RL && city == "") {
+                i_city.textContent = "City required";
+                return false;
+            }
+            else {
+                i_city.textContent = "";
+            }
+            break;
+
+        default:
+            return valid_checkout(1, RL) && valid_checkout(2, RL) && valid_checkout(3, RL) && valid_checkout(4, RL);
+    }
+    return true;
+}
