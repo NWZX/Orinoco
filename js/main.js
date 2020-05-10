@@ -6,6 +6,21 @@ function scrap_price(price) {
     price /= 1000;
     return price;
 }
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+function UR_price(response) {
+    let result = 0;
+    let card = localStorage.getItem("card").split(",");
+    for (let [key, value] of Counter(card)) {
+        const ele = response.find(n => n._id == key);;
+        result += value * scrap_price(ele.price);
+    }
+    let summary = document.getElementsByClassName('summary-table');
+    summary[0].innerHTML = '<li><span>subtotal:</span> <span>$' + result.toFixed(2) + '</span></li>' +
+        '<li><span>delivery:</span> <span>Free</span></li>' +
+        '<li><span>total:</span> <span>$' + result.toFixed(2) + '</span></li>';
+}
 function Counter(array) {
     var count = {};
     array.forEach(val => count[val] = (count[val] || 0) + 1);
@@ -29,18 +44,6 @@ function qtyObject(id, add) {
     count_card_item();
     UR_price();
     return false;
-}
-function UR_price(response) {
-    let result = 0;
-    let card = localStorage.getItem("card").split(",");
-    for (let [key, value] of Counter(card)) {
-        const ele = response.find(n => n._id == key);;
-        result += value * scrap_price(ele.price);
-    }
-    let summary = document.getElementsByClassName('summary-table');
-    summary[0].innerHTML = '<li><span>subtotal:</span> <span>$' + result.toFixed(2) + '</span></li>' +
-        '<li><span>delivery:</span> <span>Free</span></li>' +
-        '<li><span>total:</span> <span>$' + result.toFixed(2) + '</span></li>';
 }
 function count_card_item() {
     let element = document.getElementById('nb_card_item');
@@ -135,12 +138,9 @@ function valid_checkout(key, RL = true) {
     }
     return true;
 }
-function define_product(id) {
-    localStorage.setItem("product", id);
-}
 function clean() {
     localStorage.setItem("card", "");
-    window.location.replace("index.html");
+    window.location.replace("success.html");
 }
 function utf8_to_b64(str) {
     return window.btoa(unescape(encodeURIComponent(str)));
@@ -148,10 +148,18 @@ function utf8_to_b64(str) {
 function httpGetAsync(theUrl, callback) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
-        if (this.readyState == XMLHttpRequest.DONE && this.status == 200)
-            callback(JSON.parse(this.responseText));
-        else if (this.status == 400)
-            alert("API request error");
+        if (this.readyState == XMLHttpRequest.DONE) {
+            if (this.status == 200) {
+                callback(JSON.parse(this.responseText));
+            }
+            else if (this.status == 400)
+                alert("API request error");
+            else if (this.status == 404) {
+                alert("Item not found");
+                window.location.replace("index.html");
+            }
+        }
+
     }
     xmlHttp.open("GET", theUrl, true); // true for asynchronous 
     xmlHttp.send();
@@ -169,10 +177,13 @@ function httpPostAsync(theUrl, object, callback) {
     request.send(JSON.stringify(object));
 }
 function index(response) {
+    let contents = document.getElementById('amado-pro-catagory');
+    let loader = document.getElementById('amado-load');
+    let container = document.getElementsByClassName('products-catagories-area');
     for (let index = 0; index < response.length; index++) {
         const ele = response[index];
         contents.innerHTML += '<div class="single-products-catagory clearfix">' +
-            '<a href="product-details.html" onclick="define_product(\'' + ele._id + '\')">' +
+            '<a href="product-details.html?id=' + ele._id + '">' +
             '<img src="' + ele.imageUrl + '" alt="">' +
             '<div class="hover-content">' +
             '<div class="line"></div>' +
@@ -182,7 +193,6 @@ function index(response) {
             '</a>' +
             '</div>';
     }
-
     (function ($) {
         'use strict';
 
@@ -195,6 +205,9 @@ function index(response) {
 
         if ($.fn.imagesLoaded) {
             proCata.imagesLoaded(function () {
+                container[0].style.display = "block";
+                contents.style.display = "block";
+                loader.style.display = "none";
                 proCata.isotope({
                     itemSelector: singleProCata,
                     percentPosition: true,
@@ -209,11 +222,15 @@ function index(response) {
 }
 function product_detail(response) {
     let ele = response;
+    let loader = document.getElementById('amado-load');
+    let container = document.getElementsByClassName('single-product-area');
 
     let d_title = document.getElementById('detail_title');
     let d_title_nav = document.getElementById('nav_title');
+    let d_title_global = document.getElementsByTagName('title');
     d_title.innerHTML = ele.name;
     d_title_nav.innerHTML = ele.name;
+    d_title_global[0].innerHTML += ele.name;
 
     let d_desc = document.getElementById('detail_desc');
     d_desc.innerHTML = ele.description;
@@ -239,17 +256,19 @@ function product_detail(response) {
         let qty = effect.value;
         while (qty > 0) {
             if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
-                let array = localStorage.getItem("product");
+                let array = getParameters().id;
                 localStorage.setItem("card", array);
             }
             else {
                 let array = localStorage.getItem("card");
-                localStorage.setItem("card", array + "," + localStorage.getItem("product"));
+                localStorage.setItem("card", array + "," + getParameters().id);
             }
             qty--;
         }
         // On change le contenu de notre élément pour afficher "C'est cliqué !"
     });
+    container[0].style.display = "block";
+    loader.style.display = "none";
 }
 function card(response) {
     let card_element = Counter(localStorage.getItem("card").split(","));
@@ -321,7 +340,7 @@ function checkout(response) {
 function getParameters() {
     var urlParams,
         match,
-        pl = /+/g, // Regex for replacing addition symbol with a space
+        pl = /\+/g, // Regex for replacing addition symbol with a space
         search = /([^&=]+)=?([^&]*)/g,
         decode = function (s) { return decodeURIComponent(s.replace(pl)); },
         query = window.location.search.substring(1);
@@ -334,14 +353,15 @@ function getParameters() {
 count_card_item();
 //Recupéré la liste des produit
 let pages = location.pathname.split("/").slice(-1);
-let contents = document.getElementById('amado-pro-catagory');
 
 if (pages[0] == "index.html") {
     httpGetAsync(server + "/api/furniture", index)
 }
 
-else if (pages[0] == "product-details.html" && localStorage.getItem("product") != null) {
-    httpGetAsync(server + "/api/furniture/" + localStorage.getItem("product"), product_detail)
+else if (pages[0] == "product-details.html") {
+    let parameter = getParameters();
+    if (parameter.id != null)
+        httpGetAsync(server + "/api/furniture/" + parameter.id, product_detail)
 }
 
 else if (pages[0] == "cart.html" && localStorage.getItem("card") != null) {
@@ -351,6 +371,9 @@ else if (pages[0] == "cart.html" && localStorage.getItem("card") != null) {
 else if (pages[0] == "checkout.html") {
     httpGetAsync(server + "/api/furniture", checkout)
     let req = new XMLHttpRequest();
+}
+else if (pages[0] == "success.html") {
+
 }
 else {
     window.location.replace("index.html");
