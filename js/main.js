@@ -15,7 +15,23 @@ app.http = {};
 app.url = {};
 //For most used redirections
 app.goto = {};
+//
+app.var = {};
 
+
+app.var.cart = function (string = "") {
+    if(localStorage.getItem("cart") === null)
+        localStorage.setItem("cart", "");
+
+    if(string != "")
+    {
+        let cart = localStorage.getItem("cart").split(",");
+        cart.push(string);
+        localStorage.setItem("cart", cart.toString());
+    }
+
+    return localStorage.getItem("cart");
+}
 app.goto.home = function () { window.location.replace("index.html"); };
 app.goto.notFound = function () { window.location.replace("404.html"); };
 
@@ -41,8 +57,8 @@ app.tool.price = function (price) {
  * @returns {array}
  */
 app.auxiliary.cartItemLister = function (array) {
-    if(typeof array != "array")
-        throw "Parameter should be an array";
+    /*if(typeof array != "array")
+        throw "Parameter should be an array";*/
 
     if (array.length > 0 && array[0] != "") {
         var count = {};
@@ -133,7 +149,7 @@ app.auxiliary.numberPicker = function (id, add) {
  *
  * @param {number} key
  * @param {boolean} [RT=true]
- * @returns
+ * @returns {boolean}
  */
 app.auxiliary.validCheckout = function (key, RT = true) {
     let e;
@@ -238,13 +254,18 @@ app.http.getAsync = function (url, callback) {
             if (this.status == 200) {
                 callback(JSON.parse(this.responseText));
             }
-            else if (this.status == 400)
+            else if (this.status == 400){
                 alert("API request error");
+                throw "Error code 400";
+            }
             else if (this.status == 404) {
                 app.goto.notFound();
+                throw "Error code 404";
             }
-            else if (this.status == 500)
+            else if (this.status == 500){
                 alert("API request error");
+                throw "Error code 500";
+            }
         }
 
     }
@@ -272,8 +293,10 @@ app.http.postAsync = function (url, object, callback) {
         if (this.readyState == XMLHttpRequest.DONE) {
             if (this.status == 201)
                 callback(JSON.parse(this.responseText));
-            else if (this.status == 400)
+            else if (this.status == 400){
                 alert("API request error");
+                throw "Error code 400";
+            }
         }
     }
     request.open("POST", url, true);
