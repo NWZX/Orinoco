@@ -2,31 +2,66 @@ const regex_email = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 const regex_name = /\d/;
 const server = "http://207.180.251.133:4000";
 
-function scrap_price(price) {
+let app = (window.app = {});
+app.pages = {};
+app.tool = {};
+app.auxiliary = {};
+app.http = {};
+app.url = {};
+app.goto = {};
+
+app.goto.home = function () { window.location.replace("index.html"); };
+app.goto.notFound = function () { window.location.replace("404.html"); };
+
+/**
+ * Transform API price format to regular format
+ *
+ * @param {number} price
+ * @returns {number}
+ */
+app.tool.price = function (price) {
     price /= 1000;
     return price;
 }
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * Count the number of time a item exist in array
+ * Return a dictionnary with key : id and value : number of item
+ *
+ * @param {*} array
+ * @returns
+ */
+app.auxiliary.cardItemLister = function (array) {
+    if (array.length > 0 && array[0] != "") {
+        var count = {};
+        array.forEach(val => count[val] = (count[val] || 0) + 1);
+        return Object.entries(count);
+    }
+    else {
+        return [];
+    }
 }
-function UR_price(response) {
+app.auxiliary.cardItemNumber = function () {
+    let element = document.getElementById('nb_card_item');
+    if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
+        element.innerHTML = "(0)";
+    }
+    else {
+        element.innerHTML = '(' + localStorage.getItem("card").split(',').length + ')';
+    }
+}
+app.auxiliary.updatePrice = function (response) {
     let result = 0;
     let card = localStorage.getItem("card").split(",");
-    for (let [key, value] of Counter(card)) {
-        const ele = response.find(n => n._id == key);;
-        result += value * scrap_price(ele.price);
+    for (let [key, value] of app.auxiliary.cardItemLister(card)) {
+        const ele = response.find(n => n._id == key);
+        result += value * app.tool.price(ele.price);
     }
     let summary = document.getElementsByClassName('summary-table');
     summary[0].innerHTML = '<li><span>subtotal:</span> <span>$' + result.toFixed(2) + '</span></li>' +
         '<li><span>delivery:</span> <span>Free</span></li>' +
         '<li><span>total:</span> <span>$' + result.toFixed(2) + '</span></li>';
 }
-function Counter(array) {
-    var count = {};
-    array.forEach(val => count[val] = (count[val] || 0) + 1);
-    return Object.entries(count);
-}
-function qtyObject(id, add) {
+app.auxiliary.numberPicker = function (id, add) {
     let effect = document.getElementById('qty' + id);
     let qty = effect.value;
     if (add == false && !isNaN(qty) && qty > 0) {
@@ -41,20 +76,11 @@ function qtyObject(id, add) {
         card.push(id);
         localStorage.setItem("card", card.toString());
     }
-    count_card_item();
-    UR_price();
+    app.auxiliary.cardItemNumber();
+    app.auxiliary.updatePrice();
     return false;
 }
-function count_card_item() {
-    let element = document.getElementById('nb_card_item');
-    if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
-        element.innerHTML = "(0)";
-    }
-    else {
-        element.innerHTML = '(' + localStorage.getItem("card").split(',').length + ')';
-    }
-}
-function valid_checkout(key, RL = true) {
+app.auxiliary.validCheckout = function (key, RL = true) {
     let e;
     switch (key) {
         case 1:
@@ -134,18 +160,11 @@ function valid_checkout(key, RL = true) {
             break;
 
         default:
-            return valid_checkout(1, RL) && valid_checkout(2, RL) && valid_checkout(3, RL) && valid_checkout(4, RL);
+            return app.auxiliary.validCheckout(1, RL) && app.auxiliary.validCheckout(2, RL) && app.auxiliary.validCheckout(3, RL) && app.auxiliary.validCheckout(4, RL);
     }
     return true;
 }
-function clean() {
-    localStorage.setItem("card", "");
-    window.location.replace("success.html");
-}
-function utf8_to_b64(str) {
-    return window.btoa(unescape(encodeURIComponent(str)));
-}
-function httpGetAsync(theUrl, callback) {
+app.http.getAsync = function (theUrl, callback) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
         if (this.readyState == XMLHttpRequest.DONE) {
@@ -155,28 +174,31 @@ function httpGetAsync(theUrl, callback) {
             else if (this.status == 400)
                 alert("API request error");
             else if (this.status == 404) {
-                alert("Item not found");
-                window.location.replace("index.html");
+                app.goto.notFound();
             }
+            else if (this.status == 500)
+                alert("API request error");
         }
 
     }
     xmlHttp.open("GET", theUrl, true); // true for asynchronous 
     xmlHttp.send();
 }
-function httpPostAsync(theUrl, object, callback) {
+app.http.postAsync = function (theUrl, object, callback) {
     var request = new XMLHttpRequest();
     request.onreadystatechange = function () {
-        if (this.readyState == XMLHttpRequest.DONE && this.status == 201)
-            callback();
-        else if (this.status == 400)
-            alert(this.responseText);
+        if (this.readyState == XMLHttpRequest.DONE) {
+            if (this.status == 201)
+                callback(JSON.parse(this.responseText));
+            else if (this.status == 400)
+                alert("API request error");
+        }
     }
     request.open("POST", theUrl, true);
     request.setRequestHeader("Content-Type", "application/json");
     request.send(JSON.stringify(object));
 }
-function index(response) {
+app.pages.index = function (response) {
     let contents = document.getElementById('amado-pro-catagory');
     let loader = document.getElementById('amado-load');
     let container = document.getElementsByClassName('products-catagories-area');
@@ -187,7 +209,7 @@ function index(response) {
             '<img src="' + ele.imageUrl + '" alt="">' +
             '<div class="hover-content">' +
             '<div class="line"></div>' +
-            '<p>From $' + scrap_price(ele.price) + '</p>' +
+            '<p>From $' + app.tool.price(ele.price) + '</p>' +
             '<h4>' + ele.name + '</h4>' +
             '</div>' +
             '</a>' +
@@ -220,7 +242,7 @@ function index(response) {
 
     })(jQuery);
 }
-function product_detail(response) {
+app.pages.product = function (response) {
     let ele = response;
     let loader = document.getElementById('amado-load');
     let container = document.getElementsByClassName('single-product-area');
@@ -236,7 +258,7 @@ function product_detail(response) {
     d_desc.innerHTML = ele.description;
 
     let d_price = document.getElementById('detail_price');
-    d_price.innerHTML = "$" + scrap_price(ele.price);
+    d_price.innerHTML = "$" + app.tool.price(ele.price);
 
     let d_img = document.getElementsByClassName('carousel-inner');
     d_img[0].innerHTML = '<div class="carousel-item active">' +
@@ -256,12 +278,12 @@ function product_detail(response) {
         let qty = effect.value;
         while (qty > 0) {
             if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
-                let array = getParameters().id;
+                let array = app.url.parameter().id;
                 localStorage.setItem("card", array);
             }
             else {
                 let array = localStorage.getItem("card");
-                localStorage.setItem("card", array + "," + getParameters().id);
+                localStorage.setItem("card", array + "," + app.url.parameter().id);
             }
             qty--;
         }
@@ -270,56 +292,59 @@ function product_detail(response) {
     container[0].style.display = "block";
     loader.style.display = "none";
 }
-function card(response) {
-    let card_element = Counter(localStorage.getItem("card").split(","));
-    let contents = document.getElementById('card-element');
-    for (let [key, value] of card_element) {
-        const ele = response.find(n => n._id == key);
-        if (value > 300) {
-            value = 300;
+app.pages.card = function (response) {
+    let card_element = app.auxiliary.cardItemLister(localStorage.getItem("card").split(","));
+    if (card_element.length > 0) {
+        let contents = document.getElementById('card-element');
+        for (let [key, value] of card_element) {
+            const ele = response.find(n => n._id == key);
+            if (value > 300) {
+                value = 300;
+            }
+            contents.innerHTML += '<tr>' +
+                '<td class="cart_product_img">' +
+                '<a href="#"><img src="' + ele.imageUrl + '" alt="Product"></a>' +
+                '</td>' +
+                '<td class="cart_product_desc">' +
+                '<h5>' + ele.name + '</h5>' +
+                '</td>' +
+                '<td class="price">' +
+                '<span>$' + app.tool.price(ele.price) + '</span>' +
+                '</td>' +
+                '<td class="qty">' +
+                '<div class="qty-btn d-flex">' +
+                '<p>Qty</p>' +
+                '<div class="quantity">' +
+                '<span class="qty-minus" onclick="app.auxiliary.numberPicker(' + key + ', false);"><i class="fa fa-minus" aria-hidden="true"></i></span>' +
+                '<input type="number" class="qty-text" id="qty' + key + '" step="1" min="0" max="300" name="quantity" value="' + value + '">' +
+                '<span class="qty-plus" onclick="app.auxiliary.numberPicker(' + key + ', true);"><i class="fa fa-plus" aria-hidden="true"></i></span>' +
+                '</div>' +
+                '</div>' +
+                '</td>' +
+                '</tr>';
         }
-        contents.innerHTML += '<tr>' +
-            '<td class="cart_product_img">' +
-            '<a href="#"><img src="' + ele.imageUrl + '" alt="Product"></a>' +
-            '</td>' +
-            '<td class="cart_product_desc">' +
-            '<h5>' + ele.name + '</h5>' +
-            '</td>' +
-            '<td class="price">' +
-            '<span>$' + scrap_price(ele.price) + '</span>' +
-            '</td>' +
-            '<td class="qty">' +
-            '<div class="qty-btn d-flex">' +
-            '<p>Qty</p>' +
-            '<div class="quantity">' +
-            '<span class="qty-minus" onclick="qtyObject(' + key + ', false);"><i class="fa fa-minus" aria-hidden="true"></i></span>' +
-            '<input type="number" class="qty-text" id="qty' + key + '" step="1" min="0" max="300" name="quantity" value="' + value + '">' +
-            '<span class="qty-plus" onclick="qtyObject(' + key + ', true);"><i class="fa fa-plus" aria-hidden="true"></i></span>' +
-            '</div>' +
-            '</div>' +
-            '</td>' +
-            '</tr>';
+        document.getElementsByClassName("cart-btn")[0].style.display = "block";
     }
-    UR_price(response);
+    app.auxiliary.updatePrice(response);
 }
-function checkout(response) {
+app.pages.checkout = function (response) {
     document.getElementById("first_name").addEventListener("input", function (e) {
-        valid_checkout(1);
+        app.auxiliary.validCheckout(1);
     });
     document.getElementById("last_name").addEventListener("input", function (e) {
-        valid_checkout(1);
+        app.auxiliary.validCheckout(1);
     });
     document.getElementById("email").addEventListener("input", function (e) {
-        valid_checkout(2);
+        app.auxiliary.validCheckout(2);
     });
     document.getElementById("street_address").addEventListener("input", function (e) {
-        valid_checkout(3);
+        app.auxiliary.validCheckout(3);
     });
     document.getElementById("city").addEventListener("input", function (e) {
-        valid_checkout(4);
+        app.auxiliary.validCheckout(4);
     });
     document.getElementById('checkout').addEventListener('click', function () {
-        if (valid_checkout(0, false)) {
+        if (app.auxiliary.validCheckout(0, false)) {
             let contact = {
                 firstName: document.getElementById("first_name").value,
                 lastName: document.getElementById("last_name").value,
@@ -328,16 +353,19 @@ function checkout(response) {
                 email: document.getElementById("email").value
             }
             let products = localStorage.getItem("card").split(",");
-            let orderid = utf8_to_b64((new Date()).getTime().toString() + (Math.random() * 10000000).toString());
-            let object = { contact, products, orderid }
+            let object = { contact, products }
 
-            httpPostAsync(server + "/api/furniture/order", object, clean)
+            app.http.postAsync(server + "/api/furniture/order", object, app.pages.success)
         }
     });
 
-    UR_price(response);
+    app.auxiliary.updatePrice(response);
 }
-function getParameters() {
+app.pages.success = function (resposne) {
+    localStorage.setItem("card", "");
+    window.location.replace("success.html?orderId=" + response.orderId);
+}
+app.url.parameter = function () {
     var urlParams,
         match,
         pl = /\+/g, // Regex for replacing addition symbol with a space
@@ -350,31 +378,37 @@ function getParameters() {
     return urlParams;
 }
 
-count_card_item();
+app.auxiliary.cardItemNumber();
 //Recupéré la liste des produit
 let pages = location.pathname.split("/").slice(-1);
 
 if (pages[0] == "index.html") {
-    httpGetAsync(server + "/api/furniture", index)
+    app.http.getAsync(server + "/api/furniture", app.pages.index);
 }
-
 else if (pages[0] == "product-details.html") {
-    let parameter = getParameters();
+    let parameter = app.url.parameter();
     if (parameter.id != null)
-        httpGetAsync(server + "/api/furniture/" + parameter.id, product_detail)
+        app.http.getAsync(server + "/api/furniture/" + parameter.id, app.pages.product);
+    else
+        app.goto.notFound();
 }
-
 else if (pages[0] == "cart.html" && localStorage.getItem("card") != null) {
-    httpGetAsync(server + "/api/furniture", card)
+    app.http.getAsync(server + "/api/furniture", app.pages.card);
 }
-
 else if (pages[0] == "checkout.html") {
-    httpGetAsync(server + "/api/furniture", checkout)
+    app.http.getAsync(server + "/api/furniture", app.pages.checkout);
     let req = new XMLHttpRequest();
 }
 else if (pages[0] == "success.html") {
-
+    let parameter = app.url.parameter();
+    if (parameter.orderId != null) {
+        let order = document.getElementById("order-id");
+        order.innerHTML = parameter.orderId;
+    }
+    else {
+        app.goto.home();
+    }
 }
 else {
-    window.location.replace("index.html");
+    app.goto.notFound();
 }
