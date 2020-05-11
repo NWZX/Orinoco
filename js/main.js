@@ -30,7 +30,7 @@ app.tool.price = function (price) {
  * @param {*} array
  * @returns
  */
-app.auxiliary.cardItemLister = function (array) {
+app.auxiliary.cartItemLister = function (array) {
     if (array.length > 0 && array[0] != "") {
         var count = {};
         array.forEach(val => count[val] = (count[val] || 0) + 1);
@@ -40,19 +40,19 @@ app.auxiliary.cardItemLister = function (array) {
         return [];
     }
 }
-app.auxiliary.cardItemNumber = function () {
-    let element = document.getElementById('nb_card_item');
-    if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
+app.auxiliary.cartItemNumber = function () {
+    let element = document.getElementById('nb_cart_item');
+    if (localStorage.getItem("cart") === null || localStorage.getItem("cart").length == 0) {
         element.innerHTML = "(0)";
     }
     else {
-        element.innerHTML = '(' + localStorage.getItem("card").split(',').length + ')';
+        element.innerHTML = '(' + localStorage.getItem("cart").split(',').length + ')';
     }
 }
 app.auxiliary.updatePrice = function (response) {
     let result = 0;
-    let card = localStorage.getItem("card").split(",");
-    for (let [key, value] of app.auxiliary.cardItemLister(card)) {
+    let cart = localStorage.getItem("cart").split(",");
+    for (let [key, value] of app.auxiliary.cartItemLister(cart)) {
         const ele = response.find(n => n._id == key);
         result += value * app.tool.price(ele.price);
     }
@@ -66,17 +66,17 @@ app.auxiliary.numberPicker = function (id, add) {
     let qty = effect.value;
     if (add == false && !isNaN(qty) && qty > 0) {
         effect.value--;
-        let card = localStorage.getItem("card").split(",");
-        card.splice(card.indexOf(id.toString()), 1);
-        localStorage.setItem("card", card.toString());
+        let cart = localStorage.getItem("cart").split(",");
+        cart.splice(cart.indexOf(id.toString()), 1);
+        localStorage.setItem("cart", cart.toString());
     }
     if (add == true && !isNaN(qty) && qty <= 300) {
         effect.value++;
-        let card = localStorage.getItem("card").split(",");
-        card.push(id);
-        localStorage.setItem("card", card.toString());
+        let cart = localStorage.getItem("cart").split(",");
+        cart.push(id);
+        localStorage.setItem("cart", cart.toString());
     }
-    app.auxiliary.cardItemNumber();
+    app.auxiliary.cartItemNumber();
     app.auxiliary.updatePrice();
     return false;
 }
@@ -277,13 +277,13 @@ app.pages.product = function (response) {
         let effect = document.getElementById('qty');
         let qty = effect.value;
         while (qty > 0) {
-            if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
+            if (localStorage.getItem("cart") === null || localStorage.getItem("cart").length == 0) {
                 let array = app.url.parameter().id;
-                localStorage.setItem("card", array);
+                localStorage.setItem("cart", array);
             }
             else {
-                let array = localStorage.getItem("card");
-                localStorage.setItem("card", array + "," + app.url.parameter().id);
+                let array = localStorage.getItem("cart");
+                localStorage.setItem("cart", array + "," + app.url.parameter().id);
             }
             qty--;
         }
@@ -292,11 +292,11 @@ app.pages.product = function (response) {
     container[0].style.display = "block";
     loader.style.display = "none";
 }
-app.pages.card = function (response) {
-    let card_element = app.auxiliary.cardItemLister(localStorage.getItem("card").split(","));
-    if (card_element.length > 0) {
-        let contents = document.getElementById('card-element');
-        for (let [key, value] of card_element) {
+app.pages.cart = function (response) {
+    let cart_element = app.auxiliary.cartItemLister(localStorage.getItem("cart").split(","));
+    if (cart_element.length > 0) {
+        let contents = document.getElementById('cart-element');
+        for (let [key, value] of cart_element) {
             const ele = response.find(n => n._id == key);
             if (value > 300) {
                 value = 300;
@@ -352,7 +352,7 @@ app.pages.checkout = function (response) {
                 city: document.getElementById("city").value,
                 email: document.getElementById("email").value
             }
-            let products = localStorage.getItem("card").split(",");
+            let products = localStorage.getItem("cart").split(",");
             let object = { contact, products }
 
             app.http.postAsync(server + "/api/furniture/order", object, app.pages.success)
@@ -361,8 +361,8 @@ app.pages.checkout = function (response) {
 
     app.auxiliary.updatePrice(response);
 }
-app.pages.success = function (resposne) {
-    localStorage.setItem("card", "");
+app.pages.success = function (response) {
+    localStorage.setItem("cart", "");
     window.location.replace("success.html?orderId=" + response.orderId);
 }
 app.url.parameter = function () {
@@ -378,7 +378,7 @@ app.url.parameter = function () {
     return urlParams;
 }
 
-app.auxiliary.cardItemNumber();
+app.auxiliary.cartItemNumber();
 //Recupéré la liste des produit
 let pages = location.pathname.split("/").slice(-1);
 
@@ -392,8 +392,8 @@ else if (pages[0] == "product-details.html") {
     else
         app.goto.notFound();
 }
-else if (pages[0] == "cart.html" && localStorage.getItem("card") != null) {
-    app.http.getAsync(server + "/api/furniture", app.pages.card);
+else if (pages[0] == "cart.html" && localStorage.getItem("cart") != null) {
+    app.http.getAsync(server + "/api/furniture", app.pages.cart);
 }
 else if (pages[0] == "checkout.html") {
     app.http.getAsync(server + "/api/furniture", app.pages.checkout);
