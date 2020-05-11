@@ -3,11 +3,17 @@ const regex_name = /\d/;
 const server = "http://207.180.251.133:4000";
 
 let app = (window.app = {});
+//For Method that manage specific page content
 app.pages = {};
+//For Non specific method
 app.tool = {};
+//For little part used in some pages
 app.auxiliary = {};
+//For method about Http protocol
 app.http = {};
+//For method about url
 app.url = {};
+//For most used redirections
 app.goto = {};
 
 app.goto.home = function () { window.location.replace("index.html"); };
@@ -20,17 +26,24 @@ app.goto.notFound = function () { window.location.replace("404.html"); };
  * @returns {number}
  */
 app.tool.price = function (price) {
+    if(typeof price != "number")
+        throw "Parameter should be an number";
+
     price /= 1000;
     return price;
 }
+
 /**
  * Count the number of time a item exist in array
  * Return a dictionnary with key : id and value : number of item
  *
- * @param {*} array
- * @returns
+ * @param {array} array
+ * @returns {array}
  */
 app.auxiliary.cartItemLister = function (array) {
+    if(typeof array != "array")
+        throw "Parameter should be an array";
+
     if (array.length > 0 && array[0] != "") {
         var count = {};
         array.forEach(val => count[val] = (count[val] || 0) + 1);
@@ -40,6 +53,11 @@ app.auxiliary.cartItemLister = function (array) {
         return [];
     }
 }
+
+/**
+ * Count the number of item contain in the cart
+ *
+ */
 app.auxiliary.cartItemNumber = function () {
     let element = document.getElementById('nb_cart_item');
     if (localStorage.getItem("cart") === null || localStorage.getItem("cart").length == 0) {
@@ -49,18 +67,40 @@ app.auxiliary.cartItemNumber = function () {
         element.innerHTML = '(' + localStorage.getItem("cart").split(',').length + ')';
     }
 }
+
+/**
+ * Count the total price of all items in cart
+ * &&
+ * Update the summary-table element
+ *
+ * @param {object} response
+ */
 app.auxiliary.updatePrice = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     let result = 0;
-    let cart = localStorage.getItem("cart").split(",");
-    for (let [key, value] of app.auxiliary.cartItemLister(cart)) {
-        const ele = response.find(n => n._id == key);
-        result += value * app.tool.price(ele.price);
+    let cart = app.auxiliary.cartItemLister(localStorage.getItem("cart").split(","));
+    if(cart.length > 0){
+        for (let [key, value] of cart) {
+            const ele = response.find(n => n._id == key);
+            result += value * app.tool.price(ele.price);
+        }
     }
     let summary = document.getElementsByClassName('summary-table');
     summary[0].innerHTML = '<li><span>subtotal:</span> <span>$' + result.toFixed(2) + '</span></li>' +
         '<li><span>delivery:</span> <span>Free</span></li>' +
         '<li><span>total:</span> <span>$' + result.toFixed(2) + '</span></li>';
 }
+/**
+ * Add or Subtract the value of "qty" element
+ * &&
+ * Add or Remove one of the selected element from the cart
+ *
+ * @param {string} id
+ * @param {boolean} add
+ * @returns
+ */
 app.auxiliary.numberPicker = function (id, add) {
     let effect = document.getElementById('qty' + id);
     let qty = effect.value;
@@ -80,7 +120,22 @@ app.auxiliary.numberPicker = function (id, add) {
     app.auxiliary.updatePrice();
     return false;
 }
-app.auxiliary.validCheckout = function (key, RL = true) {
+
+/**
+ * Check if element of the from contain valid entry
+ * 0: Check all
+ * 1: Check firstname && lastname
+ * 2: Check email
+ * 3: Check street address
+ * 4: Check city
+ * 
+ * [RT=false] : Enable check if empty
+ *
+ * @param {number} key
+ * @param {boolean} [RT=true]
+ * @returns
+ */
+app.auxiliary.validCheckout = function (key, RT = true) {
     let e;
     switch (key) {
         case 1:
@@ -91,7 +146,7 @@ app.auxiliary.validCheckout = function (key, RL = true) {
                 i_fname.textContent = "Invalid first name"; // Texte de l'aide
                 return false;
             }
-            else if (!RL && fname == "") {
+            else if (!RT && fname == "") {
                 i_fname.textContent = "First name required";
                 return false;
             }
@@ -106,7 +161,7 @@ app.auxiliary.validCheckout = function (key, RL = true) {
                 i_lname.textContent = "Invalid last name"; // Texte de l'aide
                 return false;
             }
-            else if (!RL && lname == "") {
+            else if (!RT && lname == "") {
                 i_lname.textContent = "Last name required";
                 return false;
             }
@@ -122,7 +177,7 @@ app.auxiliary.validCheckout = function (key, RL = true) {
                 i_email.textContent = "Email invalid"; // Texte de l'aide
                 return false;
             }
-            else if (!RL && email == "") {
+            else if (!RT && email == "") {
                 i_email.textContent = "Email required";
                 return false;
             }
@@ -134,7 +189,7 @@ app.auxiliary.validCheckout = function (key, RL = true) {
             e = document.getElementById("street_address");
             var addr = e.value; // Valeur saisie dans le champ mdp
             var i_addr = document.getElementById("invalid_addr");
-            if (!RL && addr == "") {
+            if (!RT && addr == "") {
                 i_addr.textContent = "Address required";
                 return false;
             }
@@ -150,7 +205,7 @@ app.auxiliary.validCheckout = function (key, RL = true) {
                 i_city.textContent = "Invalid city"; // Texte de l'aide
                 return false;
             }
-            else if (!RL && city == "") {
+            else if (!RT && city == "") {
                 i_city.textContent = "City required";
                 return false;
             }
@@ -160,11 +215,23 @@ app.auxiliary.validCheckout = function (key, RL = true) {
             break;
 
         default:
-            return app.auxiliary.validCheckout(1, RL) && app.auxiliary.validCheckout(2, RL) && app.auxiliary.validCheckout(3, RL) && app.auxiliary.validCheckout(4, RL);
+            return app.auxiliary.validCheckout(1, RT) && app.auxiliary.validCheckout(2, RT) && app.auxiliary.validCheckout(3, RT) && app.auxiliary.validCheckout(4, RT);
     }
     return true;
 }
-app.http.getAsync = function (theUrl, callback) {
+
+/**
+ * Send a GET request at url and callback with a json result to the function if success.
+ *
+ * @param {string} url
+ * @param {function} callback
+ */
+app.http.getAsync = function (url, callback) {
+    if(typeof url != "string")
+        throw "Parameter should be an string";
+    if(typeof callback != "function")
+        throw "Parameter should be an function";
+
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
         if (this.readyState == XMLHttpRequest.DONE) {
@@ -181,10 +248,25 @@ app.http.getAsync = function (theUrl, callback) {
         }
 
     }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.open("GET", url, true); // true for asynchronous 
     xmlHttp.send();
 }
-app.http.postAsync = function (theUrl, object, callback) {
+
+/**
+ * Send a POST request at the url and callback with a json result to the function if success.
+ *
+ * @param {string} url
+ * @param {object} object
+ * @param {function} callback
+ */
+app.http.postAsync = function (url, object, callback) {
+    if(typeof url != "string")
+        throw "Parameter should be an string";
+    if(typeof object != "object")
+        throw "Parameter should be an object";
+    if(typeof callback != "function")
+        throw "Parameter should be an function";
+
     var request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (this.readyState == XMLHttpRequest.DONE) {
@@ -194,11 +276,20 @@ app.http.postAsync = function (theUrl, object, callback) {
                 alert("API request error");
         }
     }
-    request.open("POST", theUrl, true);
+    request.open("POST", url, true);
     request.setRequestHeader("Content-Type", "application/json");
     request.send(JSON.stringify(object));
 }
+
+/**
+ * Load the list of product in index.html page
+ *
+ * @param {object} response
+ */
 app.pages.index = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     let contents = document.getElementById('amado-pro-catagory');
     let loader = document.getElementById('amado-load');
     let container = document.getElementsByClassName('products-catagories-area');
@@ -242,7 +333,15 @@ app.pages.index = function (response) {
 
     })(jQuery);
 }
+/**
+ * Load the data of the product in product.html page
+ *
+ * @param {object} response
+ */
 app.pages.product = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     let ele = response;
     let loader = document.getElementById('amado-load');
     let container = document.getElementsByClassName('single-product-area');
@@ -292,7 +391,15 @@ app.pages.product = function (response) {
     container[0].style.display = "block";
     loader.style.display = "none";
 }
+/**
+ * Load the data of the cart product in cart.html page
+ *
+ * @param {object} response
+ */
 app.pages.cart = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     let cart_element = app.auxiliary.cartItemLister(localStorage.getItem("cart").split(","));
     if (cart_element.length > 0) {
         let contents = document.getElementById('cart-element');
@@ -327,7 +434,17 @@ app.pages.cart = function (response) {
     }
     app.auxiliary.updatePrice(response);
 }
+/**
+ * Check user entry
+ * &&
+ * Send the entry to API
+ *
+ * @param {object} response
+ */
 app.pages.checkout = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     document.getElementById("first_name").addEventListener("input", function (e) {
         app.auxiliary.validCheckout(1);
     });
@@ -361,10 +478,25 @@ app.pages.checkout = function (response) {
 
     app.auxiliary.updatePrice(response);
 }
+/**
+ * Remove all cart content
+ * &&
+ * Redirect to "Order confirmation" success.html page
+ *
+ * @param {object} response
+ */
 app.pages.success = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     localStorage.setItem("cart", "");
     window.location.replace("success.html?orderId=" + response.orderId);
 }
+/**
+ * Extract the parameter of url
+ *
+ * @returns {array}
+ */
 app.url.parameter = function () {
     var urlParams,
         match,
@@ -379,7 +511,8 @@ app.url.parameter = function () {
 }
 
 app.auxiliary.cartItemNumber();
-//Recupéré la liste des produit
+
+//Get current file from url
 let pages = location.pathname.split("/").slice(-1);
 
 if (pages[0] == "index.html") {
