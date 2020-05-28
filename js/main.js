@@ -15,16 +15,17 @@ app.http = {};
 app.url = {};
 //For most used redirections
 app.goto = {};
-//
+//Global variable
 app.var = {};
+//User interface element
+app.ui = {};
 
 
 app.var.cart = function (string = "") {
-    if(localStorage.getItem("cart") === null)
+    if (localStorage.getItem("cart") === null)
         localStorage.setItem("cart", "");
 
-    if(string != "")
-    {
+    if (string != "") {
         let cart = localStorage.getItem("cart").split(",");
         cart.push(string);
         localStorage.setItem("cart", cart.toString());
@@ -42,7 +43,7 @@ app.goto.notFound = function () { window.location.replace("404.html"); };
  * @returns {number}
  */
 app.tool.price = function (price) {
-    if(typeof price != "number")
+    if (typeof price != "number")
         throw "Parameter should be an number";
 
     price /= 1000;
@@ -76,11 +77,11 @@ app.auxiliary.cartItemLister = function (array) {
  */
 app.auxiliary.cartItemNumber = function () {
     let element = document.getElementById('nb_cart_item');
-    if (localStorage.getItem("cart") === null || localStorage.getItem("cart").length == 0) {
+    if (app.var.cart().length == 0) {
         element.innerHTML = "(0)";
     }
     else {
-        element.innerHTML = '(' + localStorage.getItem("cart").split(',').length + ')';
+        element.innerHTML = '(' + app.var.cart().split(',').length + ')';
     }
 }
 
@@ -90,23 +91,28 @@ app.auxiliary.cartItemNumber = function () {
  * Update the summary-table element
  *
  * @param {object} response
+ * @returns {number}
  */
-app.auxiliary.updatePrice = function (response) {
-    if(typeof response != "object")
-        throw "Parameter should be an object";
-
-    let result = 0;
-    let cart = app.auxiliary.cartItemLister(localStorage.getItem("cart").split(","));
-    if(cart.length > 0){
-        for (let [key, value] of cart) {
-            const ele = response.find(n => n._id == key);
-            result += value * app.tool.price(ele.price);
+app.auxiliary.totalPrice = function (response) {
+    if (typeof response == "object") {
+        let result = 0;
+        let cart = app.auxiliary.cartItemLister(app.var.cart().split(","));
+        if (cart.length > 0) {
+            for (let [key, value] of cart) {
+                const ele = response.find(n => n._id == key);
+                result += value * app.tool.price(ele.price);
+            }
         }
+        return result;
     }
+    else
+        throw "Parameter should be an object or array";
+}
+app.ui.updatePrice = function (value) {
     let summary = document.getElementsByClassName('summary-table');
-    summary[0].innerHTML = '<li><span>subtotal:</span> <span>$' + result.toFixed(2) + '</span></li>' +
+    summary[0].innerHTML = '<li><span>subtotal:</span> <span>$' + value.toFixed(2) + '</span></li>' +
         '<li><span>delivery:</span> <span>Free</span></li>' +
-        '<li><span>total:</span> <span>$' + result.toFixed(2) + '</span></li>';
+        '<li><span>total:</span> <span>$' + value.toFixed(2) + '</span></li>';
 }
 /**
  * Add or Subtract the value of "qty" element
@@ -133,7 +139,7 @@ app.auxiliary.numberPicker = function (id, add) {
         localStorage.setItem("cart", cart.toString());
     }
     app.auxiliary.cartItemNumber();
-    app.auxiliary.updatePrice();
+    app.ui.updatePrice(app.auxiliary.totalPrice(app.var.card_list));
     return false;
 }
 
@@ -151,89 +157,47 @@ app.auxiliary.numberPicker = function (id, add) {
  * @param {boolean} [RT=true]
  * @returns {boolean}
  */
-app.auxiliary.validCheckout = function (key, RT = true) {
+app.auxiliary.validCheckout = function (key, value, RT = true) {
     let e;
     switch (key) {
         case 1:
-            e = document.getElementById("first_name");
-            var fname = e.value; // Valeur saisie dans le champ mdp
-            var i_fname = document.getElementById("invalid_fname");
-            if (fname != "" && regex_name.test(fname)) {
-                i_fname.textContent = "Invalid first name"; // Texte de l'aide
-                return false;
+            if (value != "" && regex_name.test(value)) {
+                return true;
             }
-            else if (!RT && fname == "") {
+            if (!RT && value == "") {
                 i_fname.textContent = "First name required";
-                return false;
-            }
-            else {
-                i_fname.textContent = "";
-            }
-
-            e = document.getElementById("last_name");
-            var lname = e.value; // Valeur saisie dans le champ mdp
-            var i_lname = document.getElementById("invalid_lname");
-            if (lname != "" && regex_name.test(lname)) {
-                i_lname.textContent = "Invalid last name"; // Texte de l'aide
-                return false;
-            }
-            else if (!RT && lname == "") {
-                i_lname.textContent = "Last name required";
-                return false;
-            }
-            else {
-                i_lname.textContent = "";
+                return true;
             }
             break;
         case 2:
-            e = document.getElementById("email");
-            var email = e.value; // Valeur saisie dans le champ mdp
-            var i_email = document.getElementById("invalid_email");
-            if (email != "" && !regex_email.test(email)) {
-                i_email.textContent = "Email invalid"; // Texte de l'aide
-                return false;
+            if (value != "" && !regex_email.test(value)) {
+                return true;
             }
-            else if (!RT && email == "") {
-                i_email.textContent = "Email required";
-                return false;
-            }
-            else {
-                i_email.textContent = "";
+            if (!RT && value == "") {
+                return true;
             }
             break;
         case 3:
-            e = document.getElementById("street_address");
-            var addr = e.value; // Valeur saisie dans le champ mdp
-            var i_addr = document.getElementById("invalid_addr");
-            if (!RT && addr == "") {
-                i_addr.textContent = "Address required";
-                return false;
+            if (!RT && value == "") {
+                return true;
             }
             else {
                 i_addr.textContent = "";
             }
             break;
         case 4:
-            e = document.getElementById("city");
-            var city = e.value; // Valeur saisie dans le champ mdp
-            var i_city = document.getElementById("invalid_city");
-            if (lname != "" && regex_name.test(city)) {
-                i_city.textContent = "Invalid city"; // Texte de l'aide
-                return false;
+            if (value != "" && regex_name.test(value)) {
+                return true;
             }
-            else if (!RT && city == "") {
-                i_city.textContent = "City required";
-                return false;
-            }
-            else {
-                i_city.textContent = "";
+            if (!RT && value == "") {
+                return true;
             }
             break;
 
         default:
             return app.auxiliary.validCheckout(1, RT) && app.auxiliary.validCheckout(2, RT) && app.auxiliary.validCheckout(3, RT) && app.auxiliary.validCheckout(4, RT);
     }
-    return true;
+    return false;
 }
 
 /**
@@ -243,9 +207,9 @@ app.auxiliary.validCheckout = function (key, RT = true) {
  * @param {function} callback
  */
 app.http.getAsync = function (url, callback) {
-    if(typeof url != "string")
+    if (typeof url != "string")
         throw "Parameter should be an string";
-    if(typeof callback != "function")
+    if (typeof callback != "function")
         throw "Parameter should be an function";
 
     var xmlHttp = new XMLHttpRequest();
@@ -254,7 +218,7 @@ app.http.getAsync = function (url, callback) {
             if (this.status == 200) {
                 callback(JSON.parse(this.responseText));
             }
-            else if (this.status == 400){
+            else if (this.status == 400) {
                 alert("API request error");
                 throw "Error code 400";
             }
@@ -262,7 +226,7 @@ app.http.getAsync = function (url, callback) {
                 app.goto.notFound();
                 throw "Error code 404";
             }
-            else if (this.status == 500){
+            else if (this.status == 500) {
                 alert("API request error");
                 throw "Error code 500";
             }
@@ -281,11 +245,11 @@ app.http.getAsync = function (url, callback) {
  * @param {function} callback
  */
 app.http.postAsync = function (url, object, callback) {
-    if(typeof url != "string")
+    if (typeof url != "string")
         throw "Parameter should be an string";
-    if(typeof object != "object")
+    if (typeof object != "object")
         throw "Parameter should be an object";
-    if(typeof callback != "function")
+    if (typeof callback != "function")
         throw "Parameter should be an function";
 
     var request = new XMLHttpRequest();
@@ -293,7 +257,7 @@ app.http.postAsync = function (url, object, callback) {
         if (this.readyState == XMLHttpRequest.DONE) {
             if (this.status == 201)
                 callback(JSON.parse(this.responseText));
-            else if (this.status == 400){
+            else if (this.status == 400) {
                 alert("API request error");
                 throw "Error code 400";
             }
@@ -310,7 +274,7 @@ app.http.postAsync = function (url, object, callback) {
  * @param {object} response
  */
 app.pages.index = function (response) {
-    if(typeof response != "object")
+    if (typeof response != "object")
         throw "Parameter should be an object";
 
     let contents = document.getElementById('amado-pro-catagory');
@@ -362,7 +326,7 @@ app.pages.index = function (response) {
  * @param {object} response
  */
 app.pages.product = function (response) {
-    if(typeof response != "object")
+    if (typeof response != "object")
         throw "Parameter should be an object";
 
     let ele = response;
@@ -420,10 +384,11 @@ app.pages.product = function (response) {
  * @param {object} response
  */
 app.pages.cart = function (response) {
-    if(typeof response != "object")
+    if (typeof response != "object")
         throw "Parameter should be an object";
 
     let cart_element = app.auxiliary.cartItemLister(localStorage.getItem("cart").split(","));
+    app.var.card_list = [];
     if (cart_element.length > 0) {
         let contents = document.getElementById('cart-element');
         for (let [key, value] of cart_element) {
@@ -431,6 +396,7 @@ app.pages.cart = function (response) {
             if (value > 300) {
                 value = 300;
             }
+            app.var.card_list.push(ele);
             contents.innerHTML += '<tr>' +
                 '<td class="cart_product_img">' +
                 '<a href="#"><img src="' + ele.imageUrl + '" alt="Product"></a>' +
@@ -445,9 +411,9 @@ app.pages.cart = function (response) {
                 '<div class="qty-btn d-flex">' +
                 '<p>Qty</p>' +
                 '<div class="quantity">' +
-                '<span class="qty-minus" onclick="app.auxiliary.numberPicker(' + key + ', false);"><i class="fa fa-minus" aria-hidden="true"></i></span>' +
+                '<span class="qty-minus" onclick="app.auxiliary.numberPicker(\'' + key + '\', false);"><i class="fa fa-minus" aria-hidden="true"></i></span>' +
                 '<input type="number" class="qty-text" id="qty' + key + '" step="1" min="0" max="300" name="quantity" value="' + value + '">' +
-                '<span class="qty-plus" onclick="app.auxiliary.numberPicker(' + key + ', true);"><i class="fa fa-plus" aria-hidden="true"></i></span>' +
+                '<span class="qty-plus" onclick="app.auxiliary.numberPicker(\'' + key + '\', true);"><i class="fa fa-plus" aria-hidden="true"></i></span>' +
                 '</div>' +
                 '</div>' +
                 '</td>' +
@@ -455,7 +421,7 @@ app.pages.cart = function (response) {
         }
         document.getElementsByClassName("cart-btn")[0].style.display = "block";
     }
-    app.auxiliary.updatePrice(response);
+    app.ui.updatePrice(app.auxiliary.totalPrice(response));
 }
 /**
  * Check user entry
@@ -465,23 +431,46 @@ app.pages.cart = function (response) {
  * @param {object} response
  */
 app.pages.checkout = function (response) {
-    if(typeof response != "object")
+    if (typeof response != "object")
         throw "Parameter should be an object";
 
     document.getElementById("first_name").addEventListener("input", function (e) {
-        app.auxiliary.validCheckout(1);
+        let t = document.getElementById("first_name")
+        var i_fname = document.getElementById("invalid_fname");
+
+        if (app.auxiliary.validCheckout(1, t.value))
+            i_fname.textContent = "Invalid first name";
+        else
+            i_fname.textContent = "";
     });
     document.getElementById("last_name").addEventListener("input", function (e) {
-        app.auxiliary.validCheckout(1);
+        let t = document.getElementById("last_name");
+        if (app.auxiliary.validCheckout(1, t.value))
+            i_lname.textContent = "Invalid last name";
+        else
+            i_lname.textContent = "";
     });
     document.getElementById("email").addEventListener("input", function (e) {
-        app.auxiliary.validCheckout(2);
+        let t = document.getElementById("email");
+        var i_email = document.getElementById("invalid_email");
+        if (app.auxiliary.validCheckout(2, t.value))
+            i_email.textContent = "Email invalid";
+        else
+            i_email.textContent = "";
     });
     document.getElementById("street_address").addEventListener("input", function (e) {
-        app.auxiliary.validCheckout(3);
+        let t = document.getElementById("street_address");
+        var i_addr = document.getElementById("invalid_addr");
+        if (!app.auxiliary.validCheckout(3, t.value))
+            i_addr.textContent = "";
     });
     document.getElementById("city").addEventListener("input", function (e) {
-        app.auxiliary.validCheckout(4);
+        let t = document.getElementById("city");
+        var i_city = document.getElementById("invalid_city");
+        if (app.auxiliary.validCheckout(1, t.value))
+            i_city.textContent = "Invalid city name";
+        else
+            i_city.textContent = "";
     });
     document.getElementById('checkout').addEventListener('click', function () {
         if (app.auxiliary.validCheckout(0, false)) {
@@ -499,7 +488,7 @@ app.pages.checkout = function (response) {
         }
     });
 
-    app.auxiliary.updatePrice(response);
+    app.ui.updatePrice(app.auxiliary.totalPrice(response));
 }
 /**
  * Remove all cart content
@@ -509,7 +498,7 @@ app.pages.checkout = function (response) {
  * @param {object} response
  */
 app.pages.success = function (response) {
-    if(typeof response != "object")
+    if (typeof response != "object")
         throw "Parameter should be an object";
 
     localStorage.setItem("cart", "");
