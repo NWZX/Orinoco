@@ -528,7 +528,7 @@ app.auxiliary.cartItemNumber();
 let pages = location.pathname.split("/").slice(-1);
 
 if (pages[0] == "index.html" || pages[0] == "") {
-    app.http.getAsync(server + "/api/furniture", app.pages.index);
+    app.http.getAsync(, app.pages.index);
 }
 else if (pages[0] == "product-details.html") {
     let parameter = app.url.parameter();

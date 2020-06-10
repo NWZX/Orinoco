@@ -5,7 +5,7 @@
 
     // :: 1.0 Masonary Gallery Active Code
 
-    /*var proCata = $('.amado-pro-catagory');
+    var proCata = $('.amado-pro-catagory');
     var singleProCata = ".single-products-catagory";
 
     if ($.fn.imagesLoaded) {
@@ -18,7 +18,7 @@
                 }
             });
         });
-    }*/
+    }
 
     // :: 2.1 Search Active Code
     var amadoSearch = $('.search-nav');

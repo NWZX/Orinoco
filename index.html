@@ -17,11 +17,12 @@
     <link rel="stylesheet" href="css/core-style.css">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
     <!-- ##### Main Content Wrapper Start ##### -->
-    <div class="main-content-wrapper d-flex clearfix">
+    <div class="main-content-wrapper d-flex clearfix" id="app">
 
         <!-- Mobile Nav (max width 767px)-->
         <div class="mobile-nav">
@@ -68,9 +69,19 @@
 
         <!-- Product Catagories Area Start -->
         <div class="products-catagories-area clearfix">
-            <div class="amado-pro-catagory clearfix" id="amado-pro-catagory" style="display: none;">
+            <div class="amado-pro-catagory clearfix" id="amado-pro-catagory" v-show="grid">
+                <div class="single-products-catagory clearfix" v-for="product in products">
+                    <a :href="product._id">
+                        <img :src="product.imageUrl" alt="">
+                        <div class="hover-content">
+                            <div class="line"></div>
+                            <p>From {{product.price}}</p>
+                            <h4>{{product.name}}</h4>
+                        </div>
+                    </a>
+                </div>
             </div>
-            <div class="lds-ellipsis" id="amado-load">
+            <div class="lds-ellipsis" id="amado-load" v-show="load">
                 <div></div>
                 <div></div>
                 <div></div>
@@ -103,8 +114,6 @@
                         </p>
                     </div>
                 </div>
-                <!--<div id="qunit"></div>
-                <div id="qunit-fixture"></div>-->
             </div>
         </div>
     </footer>
@@ -119,7 +128,7 @@
     <script src="js/bootstrap.min.js"></script>
     <!-- Plugins js -->
     <script src="js/plugins.js"></script>
-    <script src="js/main.js"></script>
+    <script src="index.js"></script>
     <!-- Active js -->
     <script src="js/active.js" defer></script>
 </body>
