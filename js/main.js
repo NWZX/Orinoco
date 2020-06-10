@@ -2,56 +2,156 @@ const regex_email = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"
 const regex_name = /\d/;
 const server = "http://207.180.251.133:4000";
 
-function scrap_price(price) {
+let app = (window.app = {});
+//For Method that manage specific page content
+app.pages = {};
+//For Non specific method
+app.tool = {};
+//For little part used in some pages
+app.auxiliary = {};
+//For method about Http protocol
+app.http = {};
+//For method about url
+app.url = {};
+//For most used redirections
+app.goto = {};
+//
+app.var = {};
+
+
+app.var.cart = function (string = "") {
+    if(localStorage.getItem("cart") === null)
+        localStorage.setItem("cart", "");
+
+    if(string != "")
+    {
+        let cart = localStorage.getItem("cart").split(",");
+        cart.push(string);
+        localStorage.setItem("cart", cart.toString());
+    }
+
+    return localStorage.getItem("cart");
+}
+app.goto.home = function () { window.location.replace("index.html"); };
+app.goto.notFound = function () { window.location.replace("404.html"); };
+
+/**
+ * Transform API price format to regular format
+ *
+ * @param {number} price
+ * @returns {number}
+ */
+app.tool.price = function (price) {
+    if(typeof price != "number")
+        throw "Parameter should be an number";
+
     price /= 1000;
     return price;
 }
-function Counter(array) {
-    var count = {};
-    array.forEach(val => count[val] = (count[val] || 0) + 1);
-    return Object.entries(count);
-}
-function qtyObject(id, add) {
-    let effect = document.getElementById('qty' + id);
-    let qty = effect.value;
-    if (add == false && !isNaN(qty) && qty > 0) {
-        effect.value--;
-        let card = localStorage.getItem("card").split(",");
-        card.splice(card.indexOf(id.toString()), 1);
-        localStorage.setItem("card", card.toString());
+
+/**
+ * Count the number of time a item exist in array
+ * Return a dictionnary with key : id and value : number of item
+ *
+ * @param {array} array
+ * @returns {array}
+ */
+app.auxiliary.cartItemLister = function (array) {
+    /*if(typeof array != "array")
+        throw "Parameter should be an array";*/
+
+    if (array.length > 0 && array[0] != "") {
+        var count = {};
+        array.forEach(val => count[val] = (count[val] || 0) + 1);
+        return Object.entries(count);
     }
-    if (add == true && !isNaN(qty) && qty <= 300) {
-        effect.value++;
-        let card = localStorage.getItem("card").split(",");
-        card.push(id);
-        localStorage.setItem("card", card.toString());
+    else {
+        return [];
     }
-    count_card_item();
-    UR_price();
-    return false;
 }
-function UR_price(response) {
+
+/**
+ * Count the number of item contain in the cart
+ *
+ */
+app.auxiliary.cartItemNumber = function () {
+    let element = document.getElementById('nb_cart_item');
+    if (localStorage.getItem("cart") === null || localStorage.getItem("cart").length == 0) {
+        element.innerHTML = "(0)";
+    }
+    else {
+        element.innerHTML = '(' + localStorage.getItem("cart").split(',').length + ')';
+    }
+}
+
+/**
+ * Count the total price of all items in cart
+ * &&
+ * Update the summary-table element
+ *
+ * @param {object} response
+ */
+app.auxiliary.updatePrice = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     let result = 0;
-    let card = localStorage.getItem("card").split(",");
-    for (let [key, value] of Counter(card)) {
-        const ele = response.find(n => n._id == key);;
-        result += value * scrap_price(ele.price);
+    let cart = app.auxiliary.cartItemLister(localStorage.getItem("cart").split(","));
+    if(cart.length > 0){
+        for (let [key, value] of cart) {
+            const ele = response.find(n => n._id == key);
+            result += value * app.tool.price(ele.price);
+        }
     }
     let summary = document.getElementsByClassName('summary-table');
     summary[0].innerHTML = '<li><span>subtotal:</span> <span>$' + result.toFixed(2) + '</span></li>' +
         '<li><span>delivery:</span> <span>Free</span></li>' +
         '<li><span>total:</span> <span>$' + result.toFixed(2) + '</span></li>';
 }
-function count_card_item() {
-    let element = document.getElementById('nb_card_item');
-    if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
-        element.innerHTML = "(0)";
+/**
+ * Add or Subtract the value of "qty" element
+ * &&
+ * Add or Remove one of the selected element from the cart
+ *
+ * @param {string} id
+ * @param {boolean} add
+ * @returns
+ */
+app.auxiliary.numberPicker = function (id, add) {
+    let effect = document.getElementById('qty' + id);
+    let qty = effect.value;
+    if (add == false && !isNaN(qty) && qty > 0) {
+        effect.value--;
+        let cart = localStorage.getItem("cart").split(",");
+        cart.splice(cart.indexOf(id.toString()), 1);
+        localStorage.setItem("cart", cart.toString());
     }
-    else {
-        element.innerHTML = '(' + localStorage.getItem("card").split(',').length + ')';
+    if (add == true && !isNaN(qty) && qty <= 300) {
+        effect.value++;
+        let cart = localStorage.getItem("cart").split(",");
+        cart.push(id);
+        localStorage.setItem("cart", cart.toString());
     }
+    app.auxiliary.cartItemNumber();
+    app.auxiliary.updatePrice();
+    return false;
 }
-function valid_checkout(key, RL = true) {
+
+/**
+ * Check if element of the from contain valid entry
+ * 0: Check all
+ * 1: Check firstname && lastname
+ * 2: Check email
+ * 3: Check street address
+ * 4: Check city
+ * 
+ * [RT=false] : Enable check if empty
+ *
+ * @param {number} key
+ * @param {boolean} [RT=true]
+ * @returns {boolean}
+ */
+app.auxiliary.validCheckout = function (key, RT = true) {
     let e;
     switch (key) {
         case 1:
@@ -62,7 +162,7 @@ function valid_checkout(key, RL = true) {
                 i_fname.textContent = "Invalid first name"; // Texte de l'aide
                 return false;
             }
-            else if (!RL && fname == "") {
+            else if (!RT && fname == "") {
                 i_fname.textContent = "First name required";
                 return false;
             }
@@ -77,7 +177,7 @@ function valid_checkout(key, RL = true) {
                 i_lname.textContent = "Invalid last name"; // Texte de l'aide
                 return false;
             }
-            else if (!RL && lname == "") {
+            else if (!RT && lname == "") {
                 i_lname.textContent = "Last name required";
                 return false;
             }
@@ -93,7 +193,7 @@ function valid_checkout(key, RL = true) {
                 i_email.textContent = "Email invalid"; // Texte de l'aide
                 return false;
             }
-            else if (!RL && email == "") {
+            else if (!RT && email == "") {
                 i_email.textContent = "Email required";
                 return false;
             }
@@ -105,7 +205,7 @@ function valid_checkout(key, RL = true) {
             e = document.getElementById("street_address");
             var addr = e.value; // Valeur saisie dans le champ mdp
             var i_addr = document.getElementById("invalid_addr");
-            if (!RL && addr == "") {
+            if (!RT && addr == "") {
                 i_addr.textContent = "Address required";
                 return false;
             }
@@ -121,7 +221,7 @@ function valid_checkout(key, RL = true) {
                 i_city.textContent = "Invalid city"; // Texte de l'aide
                 return false;
             }
-            else if (!RL && city == "") {
+            else if (!RT && city == "") {
                 i_city.textContent = "City required";
                 return false;
             }
@@ -131,58 +231,104 @@ function valid_checkout(key, RL = true) {
             break;
 
         default:
-            return valid_checkout(1, RL) && valid_checkout(2, RL) && valid_checkout(3, RL) && valid_checkout(4, RL);
+            return app.auxiliary.validCheckout(1, RT) && app.auxiliary.validCheckout(2, RT) && app.auxiliary.validCheckout(3, RT) && app.auxiliary.validCheckout(4, RT);
     }
     return true;
 }
-function define_product(id) {
-    localStorage.setItem("product", id);
-}
-function clean() {
-    localStorage.setItem("card", "");
-    window.location.replace("index.html");
-}
-function utf8_to_b64(str) {
-    return window.btoa(unescape(encodeURIComponent(str)));
-}
-function httpGetAsync(theUrl, callback) {
+
+/**
+ * Send a GET request at url and callback with a json result to the function if success.
+ *
+ * @param {string} url
+ * @param {function} callback
+ */
+app.http.getAsync = function (url, callback) {
+    if(typeof url != "string")
+        throw "Parameter should be an string";
+    if(typeof callback != "function")
+        throw "Parameter should be an function";
+
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
-        if (this.readyState == XMLHttpRequest.DONE && this.status == 200)
-            callback(JSON.parse(this.responseText));
-        else if (this.status == 400)
-            alert("API request error");
+        if (this.readyState == XMLHttpRequest.DONE) {
+            if (this.status == 200) {
+                callback(JSON.parse(this.responseText));
+            }
+            else if (this.status == 400){
+                alert("API request error");
+                throw "Error code 400";
+            }
+            else if (this.status == 404) {
+                app.goto.notFound();
+                throw "Error code 404";
+            }
+            else if (this.status == 500){
+                alert("API request error");
+                throw "Error code 500";
+            }
+        }
+
     }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.open("GET", url, true); // true for asynchronous 
     xmlHttp.send();
 }
-function httpPostAsync(theUrl, object, callback) {
+
+/**
+ * Send a POST request at the url and callback with a json result to the function if success.
+ *
+ * @param {string} url
+ * @param {object} object
+ * @param {function} callback
+ */
+app.http.postAsync = function (url, object, callback) {
+    if(typeof url != "string")
+        throw "Parameter should be an string";
+    if(typeof object != "object")
+        throw "Parameter should be an object";
+    if(typeof callback != "function")
+        throw "Parameter should be an function";
+
     var request = new XMLHttpRequest();
     request.onreadystatechange = function () {
-        if (this.readyState == XMLHttpRequest.DONE && this.status == 201)
-            callback();
-        else if (this.status == 400)
-            alert(this.responseText);
+        if (this.readyState == XMLHttpRequest.DONE) {
+            if (this.status == 201)
+                callback(JSON.parse(this.responseText));
+            else if (this.status == 400){
+                alert("API request error");
+                throw "Error code 400";
+            }
+        }
     }
-    request.open("POST", theUrl, true);
+    request.open("POST", url, true);
     request.setRequestHeader("Content-Type", "application/json");
     request.send(JSON.stringify(object));
 }
-function index(response) {
+
+/**
+ * Load the list of product in index.html page
+ *
+ * @param {object} response
+ */
+app.pages.index = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
+    let contents = document.getElementById('amado-pro-catagory');
+    let loader = document.getElementById('amado-load');
+    let container = document.getElementsByClassName('products-catagories-area');
     for (let index = 0; index < response.length; index++) {
         const ele = response[index];
         contents.innerHTML += '<div class="single-products-catagory clearfix">' +
-            '<a href="product-details.html" onclick="define_product(\'' + ele._id + '\')">' +
+            '<a href="product-details.html?id=' + ele._id + '">' +
             '<img src="' + ele.imageUrl + '" alt="">' +
             '<div class="hover-content">' +
             '<div class="line"></div>' +
-            '<p>From $' + scrap_price(ele.price) + '</p>' +
+            '<p>From $' + app.tool.price(ele.price) + '</p>' +
             '<h4>' + ele.name + '</h4>' +
             '</div>' +
             '</a>' +
             '</div>';
     }
-
     (function ($) {
         'use strict';
 
@@ -195,6 +341,9 @@ function index(response) {
 
         if ($.fn.imagesLoaded) {
             proCata.imagesLoaded(function () {
+                container[0].style.display = "block";
+                contents.style.display = "block";
+                loader.style.display = "none";
                 proCata.isotope({
                     itemSelector: singleProCata,
                     percentPosition: true,
@@ -207,19 +356,31 @@ function index(response) {
 
     })(jQuery);
 }
-function product_detail(response) {
+/**
+ * Load the data of the product in product.html page
+ *
+ * @param {object} response
+ */
+app.pages.product = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     let ele = response;
+    let loader = document.getElementById('amado-load');
+    let container = document.getElementsByClassName('single-product-area');
 
     let d_title = document.getElementById('detail_title');
     let d_title_nav = document.getElementById('nav_title');
+    let d_title_global = document.getElementsByTagName('title');
     d_title.innerHTML = ele.name;
     d_title_nav.innerHTML = ele.name;
+    d_title_global[0].innerHTML += ele.name;
 
     let d_desc = document.getElementById('detail_desc');
     d_desc.innerHTML = ele.description;
 
     let d_price = document.getElementById('detail_price');
-    d_price.innerHTML = "$" + scrap_price(ele.price);
+    d_price.innerHTML = "$" + app.tool.price(ele.price);
 
     let d_img = document.getElementsByClassName('carousel-inner');
     d_img[0].innerHTML = '<div class="carousel-item active">' +
@@ -238,69 +399,92 @@ function product_detail(response) {
         let effect = document.getElementById('qty');
         let qty = effect.value;
         while (qty > 0) {
-            if (localStorage.getItem("card") === null || localStorage.getItem("card").length == 0) {
-                let array = localStorage.getItem("product");
-                localStorage.setItem("card", array);
+            if (localStorage.getItem("cart") === null || localStorage.getItem("cart").length == 0) {
+                let array = app.url.parameter().id;
+                localStorage.setItem("cart", array);
             }
             else {
-                let array = localStorage.getItem("card");
-                localStorage.setItem("card", array + "," + localStorage.getItem("product"));
+                let array = localStorage.getItem("cart");
+                localStorage.setItem("cart", array + "," + app.url.parameter().id);
             }
             qty--;
         }
         // On change le contenu de notre élément pour afficher "C'est cliqué !"
     });
+    container[0].style.display = "block";
+    loader.style.display = "none";
 }
-function card(response) {
-    let card_element = Counter(localStorage.getItem("card").split(","));
-    let contents = document.getElementById('card-element');
-    for (let [key, value] of card_element) {
-        const ele = response.find(n => n._id == key);
-        if (value > 300) {
-            value = 300;
+/**
+ * Load the data of the cart product in cart.html page
+ *
+ * @param {object} response
+ */
+app.pages.cart = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
+    let cart_element = app.auxiliary.cartItemLister(localStorage.getItem("cart").split(","));
+    if (cart_element.length > 0) {
+        let contents = document.getElementById('cart-element');
+        for (let [key, value] of cart_element) {
+            const ele = response.find(n => n._id == key);
+            if (value > 300) {
+                value = 300;
+            }
+            contents.innerHTML += '<tr>' +
+                '<td class="cart_product_img">' +
+                '<a href="#"><img src="' + ele.imageUrl + '" alt="Product"></a>' +
+                '</td>' +
+                '<td class="cart_product_desc">' +
+                '<h5>' + ele.name + '</h5>' +
+                '</td>' +
+                '<td class="price">' +
+                '<span>$' + app.tool.price(ele.price) + '</span>' +
+                '</td>' +
+                '<td class="qty">' +
+                '<div class="qty-btn d-flex">' +
+                '<p>Qty</p>' +
+                '<div class="quantity">' +
+                '<span class="qty-minus" onclick="app.auxiliary.numberPicker(' + key + ', false);"><i class="fa fa-minus" aria-hidden="true"></i></span>' +
+                '<input type="number" class="qty-text" id="qty' + key + '" step="1" min="0" max="300" name="quantity" value="' + value + '">' +
+                '<span class="qty-plus" onclick="app.auxiliary.numberPicker(' + key + ', true);"><i class="fa fa-plus" aria-hidden="true"></i></span>' +
+                '</div>' +
+                '</div>' +
+                '</td>' +
+                '</tr>';
         }
-        contents.innerHTML += '<tr>' +
-            '<td class="cart_product_img">' +
-            '<a href="#"><img src="' + ele.imageUrl + '" alt="Product"></a>' +
-            '</td>' +
-            '<td class="cart_product_desc">' +
-            '<h5>' + ele.name + '</h5>' +
-            '</td>' +
-            '<td class="price">' +
-            '<span>$' + scrap_price(ele.price) + '</span>' +
-            '</td>' +
-            '<td class="qty">' +
-            '<div class="qty-btn d-flex">' +
-            '<p>Qty</p>' +
-            '<div class="quantity">' +
-            '<span class="qty-minus" onclick="qtyObject(' + key + ', false);"><i class="fa fa-minus" aria-hidden="true"></i></span>' +
-            '<input type="number" class="qty-text" id="qty' + key + '" step="1" min="0" max="300" name="quantity" value="' + value + '">' +
-            '<span class="qty-plus" onclick="qtyObject(' + key + ', true);"><i class="fa fa-plus" aria-hidden="true"></i></span>' +
-            '</div>' +
-            '</div>' +
-            '</td>' +
-            '</tr>';
+        document.getElementsByClassName("cart-btn")[0].style.display = "block";
     }
-    UR_price(response);
+    app.auxiliary.updatePrice(response);
 }
-function checkout(response) {
+/**
+ * Check user entry
+ * &&
+ * Send the entry to API
+ *
+ * @param {object} response
+ */
+app.pages.checkout = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
     document.getElementById("first_name").addEventListener("input", function (e) {
-        valid_checkout(1);
+        app.auxiliary.validCheckout(1);
     });
     document.getElementById("last_name").addEventListener("input", function (e) {
-        valid_checkout(1);
+        app.auxiliary.validCheckout(1);
     });
     document.getElementById("email").addEventListener("input", function (e) {
-        valid_checkout(2);
+        app.auxiliary.validCheckout(2);
     });
     document.getElementById("street_address").addEventListener("input", function (e) {
-        valid_checkout(3);
+        app.auxiliary.validCheckout(3);
     });
     document.getElementById("city").addEventListener("input", function (e) {
-        valid_checkout(4);
+        app.auxiliary.validCheckout(4);
     });
     document.getElementById('checkout').addEventListener('click', function () {
-        if (valid_checkout(0, false)) {
+        if (app.auxiliary.validCheckout(0, false)) {
             let contact = {
                 firstName: document.getElementById("first_name").value,
                 lastName: document.getElementById("last_name").value,
@@ -308,38 +492,79 @@ function checkout(response) {
                 city: document.getElementById("city").value,
                 email: document.getElementById("email").value
             }
-            let products = localStorage.getItem("card").split(",");
-            let orderid = utf8_to_b64((new Date()).getTime().toString() + (Math.random() * 10000000).toString());
-            let object = { contact, products, orderid }
+            let products = localStorage.getItem("cart").split(",");
+            let object = { contact, products }
 
-            httpPostAsync(server + "/api/furniture/order", object, clean)
+            app.http.postAsync(server + "/api/furniture/order", object, app.pages.success)
         }
     });
 
-    UR_price(response);
+    app.auxiliary.updatePrice(response);
+}
+/**
+ * Remove all cart content
+ * &&
+ * Redirect to "Order confirmation" success.html page
+ *
+ * @param {object} response
+ */
+app.pages.success = function (response) {
+    if(typeof response != "object")
+        throw "Parameter should be an object";
+
+    localStorage.setItem("cart", "");
+    window.location.replace("success.html?orderId=" + response.orderId);
+}
+/**
+ * Extract the parameter of url
+ *
+ * @returns {array}
+ */
+app.url.parameter = function () {
+    var urlParams,
+        match,
+        pl = /\+/g, // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) { return decodeURIComponent(s.replace(pl)); },
+        query = window.location.search.substring(1);
+    urlParams = {};
+    while (match = search.exec(query))
+        urlParams[decode(match[1])] = decode(match[2]);
+    return urlParams;
 }
 
-count_card_item();
-//Recupéré la liste des produit
+app.auxiliary.cartItemNumber();
+
+//Get current file from url
 let pages = location.pathname.split("/").slice(-1);
-let contents = document.getElementById('amado-pro-catagory');
 
 if (pages[0] == "index.html") {
-    httpGetAsync(server + "/api/furniture", index)
+    app.http.getAsync(server + "/api/furniture", app.pages.index);
 }
-
-else if (pages[0] == "product-details.html" && localStorage.getItem("product") != null) {
-    httpGetAsync(server + "/api/furniture/" + localStorage.getItem("product"), product_detail)
+else if (pages[0] == "product-details.html") {
+    let parameter = app.url.parameter();
+    if (parameter.id != null)
+        app.http.getAsync(server + "/api/furniture/" + parameter.id, app.pages.product);
+    else
+        app.goto.notFound();
 }
-
-else if (pages[0] == "cart.html" && localStorage.getItem("card") != null) {
-    httpGetAsync(server + "/api/furniture", card)
+else if (pages[0] == "cart.html" && localStorage.getItem("cart") != null) {
+    app.http.getAsync(server + "/api/furniture", app.pages.cart);
 }
-
 else if (pages[0] == "checkout.html") {
-    httpGetAsync(server + "/api/furniture", checkout)
+    app.http.getAsync(server + "/api/furniture", app.pages.checkout);
     let req = new XMLHttpRequest();
 }
+else if (pages[0] == "success.html") {
+    let parameter = app.url.parameter();
+    if (parameter.orderId != null) {
+        let order = document.getElementById("order-id");
+        order.innerHTML = parameter.orderId;
+    }
+    else {
+        app.goto.home();
+    }
+}
 else {
-    window.location.replace("index.html");
+    app.goto.notFound();
 }
