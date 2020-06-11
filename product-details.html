@@ -15,13 +15,14 @@
 
     <!-- Core Style CSS -->
     <link rel="stylesheet" href="css/core-style.css">
-    <link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
     <!-- ##### Main Content Wrapper Start ##### -->
-    <div class="main-content-wrapper d-flex clearfix">
+    <div class="main-content-wrapper d-flex clearfix" id="app">
 
         <!-- Mobile Nav (max width 767px)-->
         <div class="mobile-nav">
@@ -53,8 +54,8 @@
             </nav>
             <!-- Cart Menu -->
             <div class="cart-fav-search mb-100">
-                <a href="cart.html" class="cart-nav"><img src="img/core-img/cart.png" alt="Cart"><span
-                        id="nb_cart_item">(0)</span></a>
+                <a href="cart.html" class="cart-nav"><img src="img/core-img/cart.png"
+                        alt="Cart"><span>({{cardItemNumber}})</span></a>
             </div>
             <!-- Social Button -->
             <div class="social-info d-flex justify-content-between">
@@ -67,7 +68,7 @@
         <!-- Header Area End -->
 
         <!-- Product Details Area Start -->
-        <div class="single-product-area section-padding-100 clearfix" style="display: none;">
+        <div class="single-product-area section-padding-100 clearfix" v-if="loadItem == false">
             <div class="container-fluid">
 
                 <div class="row">
@@ -75,7 +76,7 @@
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mt-50">
                                 <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                                <li class="breadcrumb-item active" aria-current="page" id="nav_title">
+                                <li class="breadcrumb-item active" aria-current="page">{{product.name}}
                                 </li>
                             </ol>
                         </nav>
@@ -87,8 +88,15 @@
                         <div class="single_product_thumb">
                             <div id="product_details_slider" class="carousel slide" data-ride="carousel">
                                 <ol class="carousel-indicators">
+                                    <li class="active" data-target="#product_details_slider" data-slide-to="0"
+                                        :style="product.imageUrl | styleBackground"></li>
                                 </ol>
                                 <div class="carousel-inner">
+                                    <div class="carousel-item active">
+                                        <a class="gallery_img" :href="product.imageUrl">
+                                            <img class="d-block w-100" :src="product.imageUrl" alt="First slide">
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -98,17 +106,14 @@
                             <!-- Product Meta Data -->
                             <div class="product-meta-data">
                                 <div class="line"></div>
-                                <p class="product-price" id="detail_price">$0</p>
+                                <p class="product-price">${{product.price | truePrice}}</p>
                                 <a href="product-details.html">
-                                    <h6 id="detail_title">Product Name</h6>
+                                    <h6>{{product.name}}</h6>
                                 </a>
                             </div>
 
                             <div class="short_overview my-5">
-                                <p id="detail_desc">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquid
-                                    quae eveniet culpa
-                                    officia quidem mollitia impedit iste asperiores nisi reprehenderit consequatur,
-                                    autem, nostrum pariatur enim?</p>
+                                <p id="detail_desc">{{product.description}}</p>
                             </div>
 
                             <!-- Add to Cart Form -->
@@ -116,28 +121,23 @@
                                 <div class="cart-btn d-flex mb-50">
                                     <p>Qty</p>
                                     <div class="quantity">
-                                        <span class="qty-minus"
-                                            onclick="var effect = document.getElementById('qty'); var qty = effect.value; if( !isNaN( qty ) && qty > 1 ) effect.value--;return false;"><i
-                                                class="fa fa-caret-down" aria-hidden="true"></i></span>
+                                        <span class="qty-minus" v-on:click="SubItemQ"><i class="fa fa-caret-down"
+                                                aria-hidden="true"></i></span>
                                         <input type="number" class="qty-text" id="qty" step="1" min="1" max="300"
-                                            name="quantity" value="1">
-                                        <span class="qty-plus"
-                                            onclick="var effect = document.getElementById('qty'); var qty = effect.value; if( !isNaN( qty )) effect.value++;return false;"><i
-                                                class="fa fa-caret-up" aria-hidden="true"></i></span>
+                                            name="quantity" v-model="quantity">
+                                        <span class="qty-plus" v-on:click="AddItemQ"><i class="fa fa-caret-up"
+                                                aria-hidden="true"></i></span>
                                     </div>
                                 </div>
                                 <div class="d-flex mb-50">
                                     <p>Color</p>
                                     <select id="colorselector">
                                         <option value="1" selected="selected">None</option>
-                                        <option value="2">Black</option>
-                                        <option value="3">Gray</option>
-                                        <option value="4">White</option>
-                                        <option value="5">Blue</option>
-                                        <option value="6">Violet</option>
+                                        <option v-for="color in product.varnish">{{color}}</option>
                                     </select>
                                 </div>
-                                <button type="submit" name="addtocart" value="5" class="btn amado-btn" id="checkout">Add
+                                <button type="submit" name="addtocart" value="5" class="btn amado-btn" id="checkout"
+                                    v-on:click="AddToCard" v-if="quantity > 0">Add
                                     to
                                     cart</button>
                             </form>
@@ -147,7 +147,7 @@
                 </div>
             </div>
         </div>
-        <div class="lds-ring" id="amado-load">
+        <div class="lds-ring" id="amado-load" v-else>
             <div></div>
             <div></div>
             <div></div>
@@ -185,15 +185,8 @@
 
     <!-- ##### jQuery (Necessary for All JavaScript Plugins) ##### -->
     <script src="js/jquery/jquery-2.2.4.min.js"></script>
-    <!-- Popper js -->
-    <script src="js/popper.min.js"></script>
-    <!-- Bootstrap js -->
-    <script src="js/bootstrap.min.js"></script>
-    <!-- Plugins js -->
-    <script src="js/plugins.js"></script>
-    <script src="js/main.js"></script>
-    <!-- Active js -->
-    <script src="js/active.js"></script>
+    <script src="js/bootstrap/bootstrap.min.js"></script>
+    <script src="js/product-detail.js"></script>
 </body>
 
 </html>
