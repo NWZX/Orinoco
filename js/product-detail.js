@@ -21,7 +21,7 @@ function GetCardItems() {
     if (localStorage.getItem("cart") == "")
         return [];
 
-    return localStorage.getItem("cart").split(",");
+    return JSON.parse(localStorage.getItem("cart"));
 }
 
 var app = new Vue({
@@ -60,11 +60,13 @@ var app = new Vue({
             }
         },
         AddToCard: function (e) {
+            let id = this.product._id;
+            let price = this.product.price;
             for (let index = 0; index < this.quantity; index++) {
-                this.cardItems.push(parameter.id);
+                this.cardItems.push({ id, price });
             }
 
-            localStorage.setItem("cart", this.cardItems.toString());
+            localStorage.setItem("cart", JSON.stringify(this.cardItems));
             return false;
         }
     },

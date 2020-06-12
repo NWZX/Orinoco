@@ -5,7 +5,7 @@ function GetCardItems() {
     if (localStorage.getItem("cart") == "")
         return [];
 
-    return localStorage.getItem("cart").split(",");
+    return JSON.parse(localStorage.getItem("cart"));
 }
 
 var app = new Vue({
