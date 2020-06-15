@@ -37,6 +37,7 @@ var app = new Vue({
             .then(response => {
                 this.product = response.data;
                 this.loadItem = false;
+                document.title = 'Orinoco - ' + response.data.name;
             }).catch(() => {
                 window.location.replace("404.html");
             });
