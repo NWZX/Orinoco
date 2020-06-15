@@ -29,6 +29,11 @@ html{
     display: flex;
 }
 
+/*-------------From-----------------*/
+.red-alert{
+  box-shadow: red 0 0 5px;
+}
+
 /*-------------Ellipsis Loader -----------------*/
 
 .lds-ellipsis {

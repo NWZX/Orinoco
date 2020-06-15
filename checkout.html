@@ -80,33 +80,28 @@
                             <form action="#" method="post">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control" id="first_name" v-model="user.firstName"
-                                            placeholder="First Name (Required)" required>
-                                        <div id="invalid_fname" class="custom-invalid-form"
-                                            v-show="checkRegular(user.firstName)">Invalid first name</div>
+                                        <input type="text" class="form-control"
+                                            :class="{'red-alert' : checkRegular(user.firstName)}" id="first_name"
+                                            v-model="user.firstName" placeholder="First Name (Required)" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <input type="text" class="form-control" id="last_name" v-model="user.lastName"
-                                            placeholder="Last Name (Required)" required>
-                                        <div id="invalid_lname" class="custom-invalid-form"
-                                            v-show="checkRegular(user.lastName)">Invalid last name</div>
+                                        <input type="text" class="form-control"
+                                            :class="{'red-alert' : checkRegular(user.lastName)}" id="last_name"
+                                            v-model="user.lastName" placeholder="Last Name (Required)" required>
                                     </div>
                                     <div class=" col-12 mb-3">
-                                        <input type="email" class="form-control" id="email"
+                                        <input type="email" class="form-control"
+                                            :class="{'red-alert' : checkEmail(user.email)}" id="email"
                                             placeholder="Email (Required)" v-model="user.email" required>
-                                        <div id="invalid_email" class="custom-invalid-form"
-                                            v-show="checkEmail(user.email)">Email invalid</div>
                                     </div>
                                     <div class=" col-12 mb-3">
                                         <input type="text" class="form-control mb-3" id="street_address"
                                             placeholder="Address (Required)" v-model="user.address" required>
-                                        <div id="invalid_addr" class="custom-invalid-form"></div>
                                     </div>
                                     <div class="col-12 mb-3">
-                                        <input type="text" class="form-control" id="city" placeholder="Town (Required)"
-                                            v-model="user.city" required>
-                                        <div id="invalid_city" class="custom-invalid-form"
-                                            v-show="checkRegular(user.city)">Invalid city name</div>
+                                        <input type="text" class="form-control"
+                                            :class="{'red-alert' : checkRegular(user.city)}" id="city"
+                                            placeholder="Town (Required)" v-model="user.city" required>
                                     </div>
                                 </div>
                             </form>
@@ -136,7 +131,7 @@
                                 </div>
                             </div>
 
-                            <div class="cart-btn mt-100">
+                            <div class="cart-btn mt-100" v-if="globalCheck()">
                                 <a href="#" class="btn amado-btn w-100" v-on:click="sendData">Checkout</a>
                             </div>
                         </div>
