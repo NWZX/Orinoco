@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Title  -->
-    <title>Order Success</title>
+    <title>Orinoco - Commande Réussite</title>
 
     <!-- Favicon  -->
     <link rel="icon" href="img/core-img/favicon.ico">
@@ -49,13 +49,13 @@
             <!-- Amado Nav -->
             <nav class="amado-nav">
                 <ul>
-                    <li class="active"><a href="index.html">Home</a></li>
+                    <li class="active"><a href="index.html">Accueil</a></li>
                 </ul>
             </nav>
             <!-- Cart Menu -->
             <div class="cart-fav-search mb-100">
                 <a href="cart.html" class="cart-nav"><img src="img/core-img/cart.png" alt="Cart"><span
-                        id="nb_cart_item">(0)</span></a>
+                        id="nb_cart_item">({{cardItemNumber}})</span></a>
             </div>
             <!-- Social Button -->
             <div class="social-info d-flex justify-content-between">
@@ -70,13 +70,13 @@
         <!-- Product Catagories Area Start -->
         <div class="products-catagories-area clearfix">
             <div class="m-auto text-center">
-                <h2>Thanks you for your purchase !</h2>
+                <h2>Merci pour votre achat !</h2>
                 <p>
-                    Your order number is : <strong>{{orderId}}</strong><br />
-                    We'll email you an order confirmation with details and tracking info.
+                    Votre numéro de commande : <strong>{{orderId}}</strong><br />
+                    Nous vous enverrons une confirmation de commande avec des détails et des informations de suivi.
                 </p>
                 <div class="cart-btn mt-10">
-                    <a href="index.html" class="btn amado-btn w-100" v-on:click="GoHome">Continue</a>
+                    <a href="index.html" class="btn amado-btn w-100" v-on:click="GoHome">Continuer</a>
                 </div>
             </div>
         </div>

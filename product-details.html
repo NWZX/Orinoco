@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Title  -->
-    <title>Product - </title>
+    <title>Orinoco - Product</title>
 
     <!-- Favicon  -->
     <link rel="icon" href="img/core-img/favicon.ico">
@@ -49,7 +49,7 @@
             <!-- Amado Nav -->
             <nav class="amado-nav">
                 <ul>
-                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html">Accueil</a></li>
                 </ul>
             </nav>
             <!-- Cart Menu -->
@@ -75,7 +75,7 @@
                     <div class="col-12">
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mt-50">
-                                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                                <li class="breadcrumb-item"><a href="index.html">Accueil</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">{{product.name}}
                                 </li>
                             </ol>
@@ -106,7 +106,7 @@
                             <!-- Product Meta Data -->
                             <div class="product-meta-data">
                                 <div class="line"></div>
-                                <p class="product-price">${{product.price | truePrice}}</p>
+                                <p class="product-price">{{product.price | truePrice}}€</p>
                                 <a href="product-details.html">
                                     <h6>{{product.name}}</h6>
                                 </a>
@@ -119,7 +119,7 @@
                             <!-- Add to Cart Form -->
                             <form class="cart clearfix" method="post">
                                 <div class="cart-btn d-flex mb-50">
-                                    <p>Qty</p>
+                                    <p>Qté</p>
                                     <div class="quantity">
                                         <span class="qty-minus" v-on:click="SubItemQ"><i class="fa fa-caret-down"
                                                 aria-hidden="true"></i></span>
@@ -130,16 +130,14 @@
                                     </div>
                                 </div>
                                 <div class="d-flex mb-50">
-                                    <p>Color</p>
+                                    <p>Couleur</p>
                                     <select id="colorselector">
                                         <option value="1" selected="selected">None</option>
                                         <option v-for="color in product.varnish">{{color}}</option>
                                     </select>
                                 </div>
                                 <button type="submit" name="addtocart" value="5" class="btn amado-btn" id="checkout"
-                                    v-on:click="AddToCard" v-if="quantity > 0">Add
-                                    to
-                                    cart</button>
+                                    v-on:click="AddToCard" v-if="quantity > 0">Ajouter au panier</button>
                             </form>
 
                         </div>
