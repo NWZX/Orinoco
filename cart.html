@@ -14,13 +14,14 @@
 
     <!-- Core Style CSS -->
     <link rel="stylesheet" href="css/core-style.css">
-    <link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
     <!-- ##### Main Content Wrapper Start ##### -->
-    <div class="main-content-wrapper d-flex clearfix">
+    <div class="main-content-wrapper d-flex clearfix" id="app">
 
         <!-- Mobile Nav (max width 767px)-->
         <div class="mobile-nav">
@@ -53,7 +54,7 @@
             <!-- Cart Menu -->
             <div class="cart-fav-search mb-100">
                 <a href="cart.html" class="cart-nav"><img src="img/core-img/cart.png" alt="Cart"> <span
-                        id="nb_cart_item">(0)</span></a>
+                        id="nb_cart_item">({{cardItemNumber}})</span></a>
             </div>
             <!-- Social Button -->
             <div class="social-info d-flex justify-content-between">
@@ -83,7 +84,32 @@
                                         <th>Quantity</th>
                                     </tr>
                                 </thead>
-                                <tbody id="cart-element">
+                                <tbody id="cart-element" v-if="cardItemNumber > 0">
+                                    <tr v-for="product in products">
+                                        <td class="cart_product_img">
+                                            <a href="#"><img :src="product.imageUrl" alt="Product"></a>
+                                        </td>
+                                        <td class="cart_product_desc">
+                                            <h5>{{product.name}}</h5>
+                                        </td>
+                                        <td class="price">
+                                            <span>${{product.price | truePrice}}</span>
+                                        </td>
+                                        <td class="qty">
+                                            <div class="qty-btn d-flex">
+                                                <p>Qty</p>
+                                                <div class="quantity">
+                                                    <span class="qty-minus"
+                                                        v-on:click="SubItemQ($event, product._id)"><i
+                                                            class="fa fa-minus" aria-hidden="true"></i></span>
+                                                    <input type="number" class="qty-text" id="qty' + key + '" step="1"
+                                                        min="0" max="300" name="quantity" v-model="product.quantity">
+                                                    <span class="qty-plus" v-on:click="AddItemQ($event, product._id)"><i
+                                                            class="fa fa-plus" aria-hidden="true"></i></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -92,11 +118,11 @@
                         <div class="cart-summary">
                             <h5>Cart Total</h5>
                             <ul class="summary-table">
-                                <li><span>subtotal:</span> <span>$0.00</span></li>
+                                <li><span>subtotal:</span> <span>${{totalPrice}}</span></li>
                                 <li><span>delivery:</span> <span>Free</span></li>
-                                <li><span>total:</span> <span>$0.00</span></li>
+                                <li><span>total:</span> <span>${{totalPrice}}</span></li>
                             </ul>
-                            <div class="cart-btn mt-100" style="display: none;">
+                            <div class="cart-btn mt-100" v-if="cardItemNumber > 0">
                                 <a href="checkout.html" class="btn amado-btn w-100">Checkout</a>
                             </div>
                         </div>
@@ -169,15 +195,8 @@
 
     <!-- ##### jQuery (Necessary for All JavaScript Plugins) ##### -->
     <script src="js/jquery/jquery-2.2.4.min.js"></script>
-    <!-- Popper js -->
-    <script src="js/popper.min.js"></script>
-    <!-- Bootstrap js -->
-    <script src="js/bootstrap.min.js"></script>
-    <!-- Plugins js -->
-    <script src="js/plugins.js"></script>
-    <script src="js/main.js"></script>
-    <!-- Active js -->
-    <script src="js/active.js"></script>
+    <script src="js/bootstrap/bootstrap.min.js"></script>
+    <script src="js/cart.js"></script>
 
 </body>
 
