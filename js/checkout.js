@@ -38,13 +38,22 @@ var app = new Vue({
             if (value != "" && regex_name.test(value)) {
                 return true;
             }
+            else if (value == "") {
+                return true;
+            }
             else {
                 return false;
             }
         },
+        globalCheck: function () {
+            return !this.checkRegular(this.user.firstName) && !this.checkRegular(this.user.lastName) && !this.checkRegular(this.user.city) && !this.checkEmail(this.user.email) && this.cardItems.length > 0;
+        },
         checkEmail: function (value) {
             regex_email = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             if (value != "" && !regex_email.test(value)) {
+                return true;
+            }
+            else if (value == "") {
                 return true;
             }
             else {
@@ -52,7 +61,7 @@ var app = new Vue({
             }
         },
         sendData: function () {
-            if (!this.checkRegular(this.user.firstName) && !this.checkRegular(this.user.lastName) && !this.checkRegular(this.user.city) && !this.checkEmail(this.user.email) && this.cardItems.length > 0) {
+            if (this.globalCheck()) {
                 let contact = {
                     firstName: this.user.firstName,
                     lastName: this.user.lastName,
