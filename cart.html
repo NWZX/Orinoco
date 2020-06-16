@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
     <meta charset="UTF-8">
@@ -15,8 +15,6 @@
     <!-- Core Style CSS -->
     <link rel="stylesheet" href="css/core-style.css">
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
@@ -30,15 +28,15 @@
                 <a href="index.html"><img src="img/core-img/logo.png" alt=""></a>
             </div>
             <!-- Navbar Toggler -->
-            <div class="amado-navbar-toggler">
+            <div class="amado-navbar-toggler" v-on:click="activeNav">
                 <span></span><span></span><span></span>
             </div>
         </div>
 
         <!-- Header Area Start -->
-        <header class="header-area clearfix">
+        <header class="header-area clearfix" :class="{'bp-xs-on' : toggleMobileNav}">
             <!-- Close Icon -->
-            <div class="nav-close">
+            <div class="nav-close" v-on:click="activeNav">
                 <i class="fa fa-close" aria-hidden="true"></i>
             </div>
             <!-- Logo -->
@@ -77,27 +75,26 @@
                         <div class="cart-table clearfix">
                             <table class="table table-responsive">
                                 <thead>
-                                    <tr>
-                                        <th></th>
-                                        <th>Nom</th>
-                                        <th>Prix</th>
-                                        <th>Quantité</th>
+                                    <tr class="d-flex">
+                                        <th class="col-3"></th>
+                                        <th class="col-4">Nom</th>
+                                        <th class="col-2">Prix</th>
+                                        <th class="col-3">Quantité</th>
                                     </tr>
                                 </thead>
-                                <tbody id="cart-element" v-if="cardItemNumber > 0">
-                                    <tr v-for="product in products">
-                                        <td class="cart_product_img">
+                                <tbody id="cart-element">
+                                    <tr v-for="product in products" class="d-flex">
+                                        <td class="cart_product_img col-3">
                                             <a href="#"><img :src="product.imageUrl" alt="Product"></a>
                                         </td>
-                                        <td class="cart_product_desc">
+                                        <td class="cart_product_desc col-4">
                                             <h5>{{product.name}}</h5>
                                         </td>
-                                        <td class="price">
+                                        <td class="price col-2">
                                             <span>{{product.price | truePrice}}€</span>
                                         </td>
-                                        <td class="qty">
+                                        <td class="qty col-3">
                                             <div class="qty-btn d-flex">
-                                                <p>Qté</p>
                                                 <div class="quantity">
                                                     <span class="qty-minus"
                                                         v-on:click="SubItemQ($event, product._id)"><i
@@ -160,9 +157,9 @@
     </footer>
     <!-- ##### Footer Area End ##### -->
 
-    <!-- ##### jQuery (Necessary for All JavaScript Plugins) ##### -->
-    <script src="js/jquery/jquery-2.2.4.min.js"></script>
-    <script src="js/bootstrap/bootstrap.min.js"></script>
+    <!-- ##### VUEJS ##### -->
+    <script src="js/vuejs/vue.js"></script>
+    <script src="js/axios/axios.min.js"></script>
     <script src="js/cart.js"></script>
 
 </body>
