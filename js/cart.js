@@ -1,4 +1,8 @@
 const server = "http://207.180.251.133:4000";
+
+/**
+ * Extract cart data from localStorage
+ */
 function GetCardItems() {
     if (localStorage.getItem("cart") === null)
         localStorage.setItem("cart", "");
@@ -7,6 +11,10 @@ function GetCardItems() {
 
     return JSON.parse(localStorage.getItem("cart"));
 }
+/**
+ * Compute the number of each item and return a type of Dictionary 
+ * @param {array} array 
+ */
 function NumberOfItem(array) {
     if (array.length > 0 && array[0] != "") {
         var count = {};
@@ -21,8 +29,11 @@ function NumberOfItem(array) {
 var app = new Vue({
     el: '#app',
     data: {
+        //List of required product from API
         products: [],
+        //List of item in cart
         cardItems: [],
+        //¯\_(ツ)_/¯
         totalPrice: 0,
 
         //All page with nav
@@ -45,6 +56,12 @@ var app = new Vue({
         }
     },
     methods: {
+        /**
+         * Get the event generete by the button &
+         * Update the product quantity (Positive)
+         * @param {event} e 
+         * @param {string} id Product Id
+         */
         AddItemQ: function (e, id) {
             let found = this.products.find(element => element._id == id)
             if (found.quantity < 300) {
@@ -53,6 +70,13 @@ var app = new Vue({
                 this.computeTotalPrice();
             }
         },
+        /**
+        * Get the event generete by the button &
+        * Update the product quantity (Negative)
+        * If the quantity is null => remove the product 
+        * @param {event} e
+        * @param {string} id Product Id
+        */
         SubItemQ: function (e, id) {
             let found = this.products.find(element => element._id == id)
             if (found.quantity > 0) {
@@ -64,12 +88,20 @@ var app = new Vue({
                 }
             }
         },
+        /**
+         * Add one item to the card
+         * @param {string} id 
+         */
         AddToCard: function (id) {
             let found = this.products.find(element => element._id == id)
             let price = found.price;
             this.cardItems.push({ id, price });
             localStorage.setItem("cart", JSON.stringify(this.cardItems));
         },
+        /**
+        * Remove the id item from the card
+        * @param {string} id
+        */
         PopToCard: function (id) {
             let arr = this.cardItems;
             let i = arr.map(function (e) { return e.id; }).indexOf(id);
@@ -78,6 +110,10 @@ var app = new Vue({
             }
             localStorage.setItem("cart", JSON.stringify(arr));
         },
+        /**
+         * Remove the id item from the products list
+         * @param {string} id 
+         */
         PopToProducts: function (id) {
             let arr = this.products;
             let i = arr.map(function (e) { return e._id; }).indexOf(id);
@@ -85,6 +121,9 @@ var app = new Vue({
                 arr.splice(i, 1);
             }
         },
+        /**
+         * Compute the total price ¯\_(ツ)_/¯
+         */
         computeTotalPrice: function () {
             let total = 0;
             this.cardItems.forEach(element => {
@@ -92,22 +131,26 @@ var app = new Vue({
             });
             this.totalPrice = total / 1000;
         },
+        /**
+       * Control mobile nav display
+       */
         activeNav: function () {
             this.toggleMobileNav = !this.toggleMobileNav;
         }
     },
     filters: {
+        /**
+        * Format conversion
+        * @param {number} value
+        */
         truePrice: function (value) {
             return value / 1000;
         },
-        productUrl: function (value) {
-            return 'product-details.html?id=' + value;
-        },
-        styleBackground: function (value) {
-            return { backgroundImage: 'url(' + value + ')' };
-        }
     },
     computed: {
+        /**
+        * Return the number of item in cart
+        */
         cardItemNumber: function () {
             return this.cardItems.length;
         },
