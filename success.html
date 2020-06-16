@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
     <meta charset="UTF-8">
@@ -8,19 +8,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Title  -->
-    <title>Order Success</title>
+    <title>Orinoco - Commande Réussite</title>
 
     <!-- Favicon  -->
     <link rel="icon" href="img/core-img/favicon.ico">
 
     <!-- Core Style CSS -->
     <link rel="stylesheet" href="css/core-style.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
     <!-- ##### Main Content Wrapper Start ##### -->
-    <div class="main-content-wrapper d-flex clearfix">
+    <div class="main-content-wrapper d-flex clearfix" id="app">
 
         <!-- Mobile Nav (max width 767px)-->
         <div class="mobile-nav">
@@ -29,15 +29,15 @@
                 <a href="index.html"><img src="img/core-img/logo.png" alt=""></a>
             </div>
             <!-- Navbar Toggler -->
-            <div class="amado-navbar-toggler">
+            <div class="amado-navbar-toggler" v-on:click="activeNav">
                 <span></span><span></span><span></span>
             </div>
         </div>
 
         <!-- Header Area Start -->
-        <header class="header-area clearfix">
+        <header class="header-area clearfix" :class="{'bp-xs-on' : toggleMobileNav}">
             <!-- Close Icon -->
-            <div class="nav-close">
+            <div class="nav-close" v-on:click="activeNav">
                 <i class="fa fa-close" aria-hidden="true"></i>
             </div>
             <!-- Logo -->
@@ -47,13 +47,13 @@
             <!-- Amado Nav -->
             <nav class="amado-nav">
                 <ul>
-                    <li class="active"><a href="index.html">Home</a></li>
+                    <li class="active"><a href="index.html">Accueil</a></li>
                 </ul>
             </nav>
             <!-- Cart Menu -->
             <div class="cart-fav-search mb-100">
                 <a href="cart.html" class="cart-nav"><img src="img/core-img/cart.png" alt="Cart"><span
-                        id="nb_cart_item">(0)</span></a>
+                        id="nb_cart_item">({{cardItemNumber}})</span></a>
             </div>
             <!-- Social Button -->
             <div class="social-info d-flex justify-content-between">
@@ -68,13 +68,13 @@
         <!-- Product Catagories Area Start -->
         <div class="products-catagories-area clearfix">
             <div class="m-auto text-center">
-                <h2>Thanks you for your purchase !</h2>
+                <h2>Merci pour votre achat !</h2>
                 <p>
-                    Your order number is : <strong id="order-id"></strong><br />
-                    We'll email you an order confirmation with details and tracking info.
+                    Votre numéro de commande : <strong>{{orderId}}</strong><br />
+                    Nous vous enverrons une confirmation de commande avec des détails et des informations de suivi.
                 </p>
                 <div class="cart-btn mt-10">
-                    <a href="index.html" class="btn amado-btn w-100" id="continue">Continue</a>
+                    <a href="index.html" class="btn amado-btn w-100" v-on:click="GoHome">Continuer</a>
                 </div>
             </div>
         </div>
@@ -109,19 +109,11 @@
     </footer>
     <!-- ##### Footer Area End ##### -->
 
-    <!-- ##### jQuery (Necessary for All JavaScript Plugins) ##### -->
+    <!-- ##### VUEJS ##### -->
 
-    <script src="js/jquery/jquery-2.2.4.min.js"></script>
-    <!-- Popper js -->
-    <script src="js/popper.min.js"></script>
-    <!-- Bootstrap js -->
-    <script src="js/bootstrap.min.js"></script>
-    <!-- Plugins js -->
-    <script src="js/plugins.js"></script>
-    <script src="js/main.js"></script>
-    <!-- Active js -->
-    <script src="js/active.js" defer></script>
-
+    <script src="js/vuejs/vue.js"></script>
+    <script src="js/axios/axios.min.js"></script>
+    <script src="js/success.js"></script>
 </body>
 
 </html>
