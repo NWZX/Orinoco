@@ -1,4 +1,8 @@
 const server = "http://207.180.251.133:4000";
+
+/**
+ * Extract cart data from localStorage
+ */
 function GetCardItems() {
     if (localStorage.getItem("cart") === null)
         localStorage.setItem("cart", "");
@@ -11,9 +15,9 @@ function GetCardItems() {
 var app = new Vue({
     el: '#app',
     data: {
-        products: [],
-        loadItems: true,
+        //List of item in cart
         cardItems: [],
+        //Form data
         user: {
             firstName: '',
             lastName: '',
@@ -26,16 +30,13 @@ var app = new Vue({
         toggleMobileNav: false
     },
     mounted() {
-        axios.get(server + '/api/furniture')
-            .then(response => {
-                this.products = response.data;
-                this.loadItems = false;
-            }).catch(() => {
-                window.location.replace("404.html");
-            });
         this.cardItems = GetCardItems();
     },
     methods: {
+        /**
+         * Test if there has any number
+         * @param {string} value 
+         */
         checkRegular: function (value) {
             regex_name = /\d/;
             if (value != "" && regex_name.test(value)) {
@@ -48,9 +49,16 @@ var app = new Vue({
                 return false;
             }
         },
+        /**
+         * Test all the tested entry
+         */
         globalCheck: function () {
             return !this.checkRegular(this.user.firstName) && !this.checkRegular(this.user.lastName) && !this.checkRegular(this.user.city) && !this.checkEmail(this.user.email) && this.cardItems.length > 0;
         },
+        /**
+         * Test if it's a email
+         * @param {*} value 
+         */
         checkEmail: function (value) {
             regex_email = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             if (value != "" && !regex_email.test(value)) {
@@ -63,6 +71,9 @@ var app = new Vue({
                 return false;
             }
         },
+        /**
+         * Send formated & tested data to API
+         */
         sendData: function () {
             if (this.globalCheck()) {
                 let contact = {
@@ -86,22 +97,32 @@ var app = new Vue({
                 });
             }
         },
+        /**
+        * Control mobile nav display
+        */
         activeNav: function () {
             this.toggleMobileNav = !this.toggleMobileNav;
         }
     },
     filters: {
+        /**
+        * Format conversion
+        * @param {number} value
+        */
         truePrice: function (value) {
             return value / 1000;
         },
-        productUrl: function (value) {
-            return 'product-details.html?id=' + value;
-        }
     },
     computed: {
+        /**
+        * Return the number of item in cart
+        */
         cardItemNumber: function () {
             return this.cardItems.length;
         },
+        /**
+         * Compute the total price ¯\_(ツ)_/¯
+         */
         totalPrice: function () {
             let total = 0;
             this.cardItems.forEach(element => {

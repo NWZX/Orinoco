@@ -1,3 +1,6 @@
+/**
+ * Get parameter from url
+ */
 function getParameter() {
     var urlParams,
         match,
@@ -10,6 +13,9 @@ function getParameter() {
         urlParams[decode(match[1])] = decode(match[2]);
     return urlParams;
 }
+/**
+ * Extract cart data from localStorage
+ */
 function GetCardItems() {
     if (localStorage.getItem("cart") === null)
         localStorage.setItem("cart", "");
@@ -26,7 +32,9 @@ if (parameter.orderId == null)
 var app = new Vue({
     el: '#app',
     data: {
+        //¯\_(ツ)_/¯
         orderId: "",
+        //List of item in cart
         cardItems: [],
 
         //All page with nav
@@ -37,14 +45,23 @@ var app = new Vue({
         this.cardItems = GetCardItems();
     },
     methods: {
+        /**
+         * Send user to home page
+         */
         GoHome: function () {
             window.location.replace("index.html");
         },
+        /**
+        * Control mobile nav display
+        */
         activeNav: function () {
             this.toggleMobileNav = !this.toggleMobileNav;
         }
     },
     computed: {
+        /**
+        * Return the number of item in cart
+        */
         cardItemNumber: function () {
             return this.cardItems.length;
         }
