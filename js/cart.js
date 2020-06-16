@@ -23,7 +23,10 @@ var app = new Vue({
     data: {
         products: [],
         cardItems: [],
-        totalPrice: 0
+        totalPrice: 0,
+
+        //All page with nav
+        toggleMobileNav: false
     },
     mounted() {
         this.cardItems = GetCardItems();
@@ -56,6 +59,9 @@ var app = new Vue({
                 found.quantity -= 1;
                 this.PopToCard(id);
                 this.computeTotalPrice();
+                if (found.quantity == 0) {
+                    this.PopToProducts(id);
+                }
             }
         },
         AddToCard: function (id) {
@@ -72,12 +78,22 @@ var app = new Vue({
             }
             localStorage.setItem("cart", JSON.stringify(arr));
         },
+        PopToProducts: function (id) {
+            let arr = this.products;
+            let i = arr.map(function (e) { return e._id; }).indexOf(id);
+            if (i > -1) {
+                arr.splice(i, 1);
+            }
+        },
         computeTotalPrice: function () {
             let total = 0;
             this.cardItems.forEach(element => {
                 total += element.price;
             });
             this.totalPrice = total / 1000;
+        },
+        activeNav: function () {
+            this.toggleMobileNav = !this.toggleMobileNav;
         }
     },
     filters: {
