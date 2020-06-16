@@ -20,7 +20,10 @@ var app = new Vue({
             email: '',
             address: '',
             city: ''
-        }
+        },
+
+        //All page with nav
+        toggleMobileNav: false
     },
     mounted() {
         axios.get(server + '/api/furniture')
@@ -82,6 +85,9 @@ var app = new Vue({
                     window.location.replace("405.html");
                 });
             }
+        },
+        activeNav: function () {
+            this.toggleMobileNav = !this.toggleMobileNav;
         }
     },
     filters: {

@@ -30,7 +30,10 @@ var app = new Vue({
         product: {},
         loadItem: true,
         cardItems: [],
-        quantity: 1
+        quantity: 1,
+
+        //All page with nav
+        toggleMobileNav: false
     },
     mounted() {
         axios.get(server + '/api/furniture/' + parameter.id)
@@ -69,6 +72,9 @@ var app = new Vue({
 
             localStorage.setItem("cart", JSON.stringify(this.cardItems));
             return false;
+        },
+        activeNav: function () {
+            this.toggleMobileNav = !this.toggleMobileNav;
         }
     },
     filters: {

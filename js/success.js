@@ -27,7 +27,10 @@ var app = new Vue({
     el: '#app',
     data: {
         orderId: "",
-        cardItems: []
+        cardItems: [],
+
+        //All page with nav
+        toggleMobileNav: false
     },
     mounted() {
         this.orderId = parameter.orderId;
@@ -36,6 +39,9 @@ var app = new Vue({
     methods: {
         GoHome: function () {
             window.location.replace("index.html");
+        },
+        activeNav: function () {
+            this.toggleMobileNav = !this.toggleMobileNav;
         }
     },
     computed: {
