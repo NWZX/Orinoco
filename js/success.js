@@ -29,7 +29,7 @@ let parameter = getParameter();
 if (parameter.orderId == null)
     window.location.replace("404.html");
 
-var app = new Vue({
+var appSuccess = new Vue({
     el: '#app',
     data: {
         //¯\_(ツ)_/¯

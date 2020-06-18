@@ -1,0 +1,30 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="css/mocha.css">
+</head>
+
+<body>
+    <div id="mocha"></div>
+    <div id="app"></div>
+    <script src="js/lib/mocha.js"></script>
+    <script src="js/lib/chai.js"></script>
+    <script src="../js/vuejs/vue.js"></script>
+    <script src="js/lib/vueTemplateCompiler.js"></script>
+    <script src="js/lib/vue-test-utils.min.js"></script>
+    <script src="../js/axios/axios.min.js"></script>
+    <script>
+        localStorage.setItem("cart", '[]');
+    </script>
+    <script src="../js/index.js"></script>
+    <script>
+        mocha.setup('bdd');
+        var expect = chai.expect;
+        setTimeout(function () {
+            mocha.run();
+        }, 1000);
+    </script>
+    <script src="js/index_test.js"></script>
+</body>
+
+</html>

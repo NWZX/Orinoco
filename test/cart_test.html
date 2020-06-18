@@ -1,0 +1,36 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="css/mocha.css">
+</head>
+
+<body>
+    <div id="mocha"></div>
+    <div id="app">
+        <div v-for="product in products">
+            <div v-on:click="AddItemQ($event, product._id)" ref="addBtn"></div>
+            <div v-on:click="SubItemQ($event, product._id)" ref="delBtn"></div>
+            <div v-on:click="AddToCard" ref="addCart"></div>
+        </div>
+    </div>
+    <script src="js/lib/mocha.js"></script>
+    <script src="js/lib/chai.js"></script>
+    <script src="../js/vuejs/vue.js"></script>
+    <script src="js/lib/vueTemplateCompiler.js"></script>
+    <script src="js/lib/vue-test-utils.min.js"></script>
+    <script src="../js/axios/axios.min.js"></script>
+    <script>
+        localStorage.setItem("cart", '[{"id":"5be9cc611c9d440000c1421e","price":59900},{"id":"5beaadda1c9d440000a57d98","price":89900}]');
+    </script>
+    <script src="../js/cart.js"></script>
+    <script>
+        mocha.setup('bdd');
+        var expect = chai.expect;
+        setTimeout(function () {
+            mocha.run();
+        }, 1000 + 100 * 2);
+    </script>
+    <script src="js/cart_test.js"></script>
+</body>
+
+</html>

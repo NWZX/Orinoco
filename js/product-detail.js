@@ -1,7 +1,4 @@
 const server = "http://207.180.251.133:4000";
-let parameter = getParameter();
-if (parameter.id == null)
-    window.location.replace("404.html");
 /**
  * Get parameter from url
  */
@@ -17,6 +14,9 @@ function getParameter() {
         urlParams[decode(match[1])] = decode(match[2]);
     return urlParams;
 }
+let parameter = getParameter();
+if (typeof parameter === 'undefined' || parameter.id == null)
+    window.location.replace("404.html");
 /**
  * Extract cart data from localStorage
  */
@@ -29,7 +29,7 @@ function GetCardItems() {
     return JSON.parse(localStorage.getItem("cart"));
 }
 
-var app = new Vue({
+var appProduct = new Vue({
     el: '#app',
     data: {
         //Product data from API

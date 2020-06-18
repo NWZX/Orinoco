@@ -12,7 +12,7 @@ function GetCardItems() {
     return JSON.parse(localStorage.getItem("cart"));
 }
 
-var app = new Vue({
+var appCheckout = new Vue({
     el: '#app',
     data: {
         //List of item in cart
@@ -60,7 +60,7 @@ var app = new Vue({
          * @param {*} value 
          */
         checkEmail: function (value) {
-            regex_email = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            regex_email = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
             if (value != "" && !regex_email.test(value)) {
                 return true;
             }
@@ -93,7 +93,7 @@ var app = new Vue({
                     localStorage.setItem("cart", "");
                     window.location.replace("success.html?orderId=" + response.data.orderId);
                 }).catch(() => {
-                    window.location.replace("405.html");
+                    window.location.replace("404.html");
                 });
             }
         },

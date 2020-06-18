@@ -26,7 +26,7 @@ function NumberOfItem(array) {
     }
 }
 
-var app = new Vue({
+var appCart = new Vue({
     el: '#app',
     data: {
         //List of required product from API
